@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heartpost — Say What You’ve Been Holding In</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@300;400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f5efe2;
+  --ink:#1a1208;
+  --wax:#c0392b;
+  --gold:#d4a017;
+}
+
+body{
+  margin:0;
+  font-family:'Cormorant Garamond',serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+
+/* HERO */
+.hero{
+  min-height:90vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:2rem;
+}
+
+.hero h1{
+  font-family:'Playfair Display',serif;
+  font-size:2.5rem;
+  font-style:italic;
+}
+
+.hero p{
+  margin-top:1rem;
+  font-size:1.1rem;
+  opacity:0.7;
+}
+
+.cta{
+  display:inline-block;
+  margin-top:1.5rem;
+  background:var(--wax);
+  color:white;
+  padding:1rem 2rem;
+  text-decoration:none;
+  font-family:'DM Mono';
+  letter-spacing:0.1em;
+}
+
+.meta{
+  margin-top:1rem;
+  font-size:0.75rem;
+  opacity:0.6;
+}
+
+/* INTENTS */
+.intents{
+  text-align:center;
+  padding:3rem 1.5rem;
+}
+
+.intent-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem;
+  margin-top:1.5rem;
+}
+
+.intent{
+  border:1px solid rgba(0,0,0,0.1);
+  padding:1.5rem;
+  cursor:pointer;
+  background:#faf6ed;
+  transition:0.2s;
+}
+
+.intent:hover{
+  border-color:var(--wax);
+}
+
+/* SECTION */
+.section{
+  text-align:center;
+  padding:3rem 1.5rem;
+}
+
+.final{
+  padding:4rem 1.5rem;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <h1>Say what you’ve been holding in.</h1>
+    <p>We turn your words into a real letter—printed, sealed, and delivered.</p>
+
+    <a href="write.html" class="cta">Send a Letter →</a>
+
+    <div class="meta">
+      Mailed within 24 hours · Private · Discreet packaging
+    </div>
+  </div>
+</section>
+
+<!-- INTENT -->
+<section class="intents">
+  <h2>Some things are easier written than said.</h2>
+
+  <div class="intent-grid">
+    <div class="intent" onclick="goIntent('apology')">
+      💔<br>I need to say sorry
+    </div>
+    <div class="intent" onclick="goIntent('miss')">
+      💭<br>I miss someone
+    </div>
+    <div class="intent" onclick="goIntent('love')">
+      ❤️<br>I love you
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="section">
+  <p>Texts get ignored.</p>
+  <p>Calls get avoided.</p>
+  <h3>Letters get kept.</h3>
+
+  <a href="write.html" class="cta">Write Your Letter →</a>
+</section>
+
+<!-- HOW -->
+<section class="section">
+  <h2>How it works</h2>
+  <p>Write → We print → We seal → We deliver</p>
+</section>
+
+<!-- FINAL -->
+<section class="final">
+  <h2>Some things shouldn’t be left unsaid.</h2>
+  <a href="write.html" class="cta">Send Your Letter →</a>
+</section>
+
+<script>
+function goIntent(type){
+  localStorage.setItem("intent", type);
+  window.location.href = "write.html";
+}
+</script>
+
+</body>
+</html>
