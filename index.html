@@ -1,894 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Heartpost — Write a Letter</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://js.stripe.com/v3/"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#1a1208;--parchment:#f5efe2;--cream:#faf6ed;
-  --sepia:#8b6914;--wax:#c0392b;--wax-dark:#922b21;
-  --gold:#d4a017;--border:rgba(139,105,20,0.2);
-  --red:#c0392b;--red-bg:rgba(192,57,43,0.06);
-}
-html{scroll-behavior:smooth}
-body{background:var(--parchment);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.6;min-height:100vh}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heartpost — Handwritten Letters, Delivered</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #F9F5F0;
+      --ink: #1A1410;
+      --red: #C8392B;
+      --warm-gray: #8C7B6E;
+      --light-gray: #E8E0D8;
+      --parchment: #F2EBE0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; overflow-x: hidden; }
 
-/* NAV */
-nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);background:rgba(245,239,226,0.95);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100}
-.logo{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;text-decoration:none;color:var(--ink)}
-.logo span{color:var(--wax)}
-.home-link{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,18,8,0.75);text-decoration:none;transition:color 0.2s;font-weight:500}
-.home-link:hover{color:var(--ink)}
+    .urgency-bar { background: var(--red); color: white; text-align: center; padding: 10px 24px; font-size: 13px; letter-spacing: 0.04em; position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
+    .urgency-bar strong { font-weight: 500; }
 
-/* PROGRESS */
-.prog{display:flex;align-items:center;justify-content:center;padding:1.2rem 2rem;background:var(--cream);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:0.3rem}
-.ps{display:flex;align-items:center;gap:0.6rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(26,18,8,0.35);padding:0.3rem 0.5rem;font-weight:500}
-.ps.active{color:var(--ink)}
-.ps.done{color:var(--sepia);cursor:pointer}
-.pn{width:32px;height:32px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:0.88rem;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace}
-.ps.active .pn{background:var(--wax);color:#fff;border-color:var(--wax);box-shadow:0 2px 8px rgba(192,57,43,0.35)}
-.ps.done .pn{background:var(--sepia);color:#fff;border-color:var(--sepia)}
-.ps:not(.active):not(.done) .pn{color:rgba(26,18,8,0.35);border-color:rgba(26,18,8,0.25)}
-.pdiv{width:32px;height:2px;background:rgba(26,18,8,0.12)}
+    nav { position: fixed; top: 36px; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 18px 48px; background: rgba(249,245,240,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--light-gray); }
+    .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; letter-spacing: 0.08em; color: var(--ink); text-decoration: none; }
+    .nav-logo span { color: var(--red); }
+    .nav-cta { background: var(--ink); color: var(--cream); text-decoration: none; padding: 10px 24px; font-size: 13px; letter-spacing: 0.06em; font-weight: 400; transition: background 0.2s; }
+    .nav-cta:hover { background: var(--red); }
 
-/* MAIN */
-.main{max-width:700px;margin:0 auto;padding:2.5rem 1.5rem 5rem}
+    .hero { min-height: 100vh; display: flex; align-items: center; padding: 160px 48px 80px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; right: 0; width: 52%; height: 100%; background: var(--parchment); z-index: 0; }
+    .hero-content { position: relative; z-index: 1; max-width: 540px; }
+    .hero-eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .hero-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--red); }
+    h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(46px, 6vw, 80px); font-weight: 300; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 24px; }
+    h1 em { font-style: italic; color: var(--red); }
+    .hero-sub { font-size: 16px; line-height: 1.75; color: var(--warm-gray); max-width: 400px; margin-bottom: 44px; }
+    .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--red); color: white; text-decoration: none; padding: 16px 36px; font-size: 14px; letter-spacing: 0.05em; font-family: 'DM Sans', sans-serif; font-weight: 400; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-ghost { color: var(--ink); text-decoration: none; font-size: 14px; letter-spacing: 0.04em; border-bottom: 1px solid var(--ink); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+    .btn-ghost:hover { color: var(--red); border-color: var(--red); }
+    .hero-image { position: absolute; right: 48px; top: 50%; transform: translateY(-50%); z-index: 1; width: 40%; max-width: 480px; }
+    .letter-card { background: white; padding: 40px 44px; box-shadow: 0 12px 60px rgba(26,20,16,0.12); position: relative; }
+    .letter-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--red); }
+    .letter-to { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-gray); margin-bottom: 6px; }
+    .letter-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 400; margin-bottom: 20px; }
+    .letter-body { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-style: italic; line-height: 1.9; color: #3A2E26; }
+    .wax-seal { width: 52px; height: 52px; background: var(--red); border-radius: 50%; margin-top: 28px; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 
-/* PANELS */
-.panel{display:none}
-.panel.on{display:block;animation:fi 0.3s ease}
-@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .trust-strip { background: var(--ink); padding: 20px 48px; display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+    .trust-strip div { color: #A89888; font-size: 13px; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
+    .trust-strip div span { font-size: 16px; }
 
-/* TYPOGRAPHY */
-h1.stitle{font-family:'Playfair Display',serif;font-style:italic;font-size:1.8rem;margin-bottom:0.3rem}
-p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:italic}
+    .how { padding: 100px 48px; background: white; }
+    .section-label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
+    .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 4vw, 50px); font-weight: 300; line-height: 1.1; margin-bottom: 56px; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border: 1px solid var(--light-gray); }
+    .step { padding: 44px 32px; border-right: 1px solid var(--light-gray); }
+    .step:last-child { border-right: none; }
+    .step-num { font-family: 'Cormorant Garamond', serif; font-size: 60px; font-weight: 300; color: var(--light-gray); line-height: 1; margin-bottom: 16px; }
+    .step h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; margin-bottom: 10px; }
+    .step p { font-size: 14px; line-height: 1.7; color: var(--warm-gray); }
 
-/* LETTER AREA */
-.letter-paper{background:var(--cream);border:1px solid var(--border);padding:2rem;position:relative;box-shadow:2px 2px 16px rgba(26,18,8,0.06)}
-.letter-paper::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--wax),var(--gold))}
-.letter-lines{width:100%;min-height:280px;background:transparent;border:none;outline:none;resize:vertical;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;line-height:2;color:var(--ink);padding:0.5rem 0}
-.letter-lines::placeholder{color:rgba(26,18,8,0.45);font-style:italic}
+    .types { padding: 100px 48px; background: var(--parchment); }
+    .types-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 56px; }
+    .type-card { background: white; padding: 48px 40px; position: relative; transition: transform 0.3s; }
+    .type-card:hover { transform: translateY(-4px); }
+    .type-card.featured::after { content: 'Most Popular'; position: absolute; top: 24px; right: 24px; background: var(--red); color: white; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; }
+    .type-icon { font-size: 32px; margin-bottom: 18px; }
+    .type-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; margin-bottom: 12px; }
+    .type-card p { font-size: 14px; line-height: 1.7; color: var(--warm-gray); margin-bottom: 24px; }
+    .type-price { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; color: var(--red); }
+    .type-price span { font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 300; color: var(--warm-gray); }
 
-/* MODE TABS */
-.mtabs{display:flex;border:1px solid var(--border);margin-bottom:1.2rem;overflow:hidden}
-.mtab{flex:1;padding:0.75rem;text-align:center;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,18,8,0.45);border:none;background:transparent;transition:all 0.2s}
-.mtab.on{background:var(--ink);color:var(--cream)}
-.mtab:first-child{border-right:1px solid var(--border)}
+    .promise { padding: 100px 48px; background: var(--ink); color: var(--cream); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .promise h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 4vw, 52px); font-weight: 300; line-height: 1.1; margin-bottom: 20px; }
+    .promise h2 em { color: var(--red); font-style: italic; }
+    .promise > div > p { font-size: 15px; line-height: 1.8; color: #A89888; margin-bottom: 32px; }
+    .promise-items { display: flex; flex-direction: column; gap: 22px; }
+    .promise-item { display: flex; gap: 18px; align-items: flex-start; }
+    .promise-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; margin-top: 8px; flex-shrink: 0; }
+    .promise-item h4 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; margin-bottom: 4px; }
+    .promise-item p { font-size: 13px; color: #7A6A5E; }
 
-/* PHOTO BUTTONS — iOS safe */
-.photo-btns{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.5rem}
-.photo-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.4rem;padding:1.4rem 1rem;border:2px dashed rgba(26,18,8,0.15);background:rgba(255,255,255,0.3);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,18,8,0.6);transition:border-color 0.2s,color 0.2s;-webkit-tap-highlight-color:transparent}
-.photo-btn:active,.photo-btn:hover{border-color:var(--wax);color:var(--wax)}
-.photo-btn span.icon{font-size:1.6rem;line-height:1}
-/* hidden file inputs */
-#inp-camera{display:none}
-#inp-library{display:none}
-#inp-more-camera{display:none}
-#inp-more-library{display:none}
+    .cta-strip { padding: 100px 48px; text-align: center; background: var(--cream); }
+    .cta-strip h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(38px, 5vw, 64px); font-weight: 300; line-height: 1.1; margin-bottom: 16px; }
+    .cta-strip h2 em { font-style: italic; color: var(--red); }
+    .cta-strip p { font-size: 16px; color: var(--warm-gray); max-width: 440px; margin: 0 auto 36px; line-height: 1.7; }
 
-/* PHOTO PREVIEW GRID */
-#hprev-wrap{display:none;margin-top:1rem}
-.page-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.4rem}
-.page-meta-left{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(26,18,8,0.6)}
-.add-more-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.8rem}
-.add-more-btn{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.08em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:rgba(26,18,8,0.55);padding:0.55rem 0.5rem;cursor:pointer;transition:all 0.15s;text-align:center}
-.add-more-btn:active,.add-more-btn:hover{border-color:var(--sepia);color:var(--sepia)}
-#hprev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.7rem}
-.photo-thumb{position:relative;border:1px solid var(--border);background:var(--cream);overflow:hidden;animation:fi 0.25s ease}
-.photo-thumb img{width:100%;height:120px;object-fit:cover;display:block}
-.photo-thumb-footer{display:flex;align-items:center;justify-content:space-between;padding:0.25rem 0.5rem;border-top:1px solid var(--border)}
-.photo-page-label{font-family:'DM Mono',monospace;font-size:0.52rem;color:rgba(26,18,8,0.55)}
-.photo-remove{background:var(--red-bg);border:1px solid rgba(192,57,43,0.2);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--red);padding:0.3rem 0.5rem;line-height:1;transition:all 0.15s;-webkit-tap-highlight-color:transparent;letter-spacing:0.05em}
+    footer { padding: 36px 48px; background: var(--ink); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    footer .logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--cream); letter-spacing: 0.08em; }
+    footer .logo span { color: var(--red); }
+    footer p { font-size: 12px; color: #5A4A3E; letter-spacing: 0.04em; }
 
-/* photo validation error */
-#photo-err{display:none;font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--red);margin-top:0.4rem;letter-spacing:0.05em}
-#photo-err.show{display:block}
-.photo-btns.err .photo-btn{border-color:var(--red)}
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-content > * { animation: fadeUp 0.7s ease forwards; opacity: 0; }
+    .hero-eyebrow { animation-delay: 0.1s; }
+    h1 { animation-delay: 0.2s; }
+    .hero-sub { animation-delay: 0.35s; }
+    .hero-actions { animation-delay: 0.5s; }
+    .hero-image { animation: fadeUp 0.9s ease 0.3s forwards; opacity: 0; }
 
-/* FIELDS */
-.field{margin-bottom:1.1rem}
-.field label{display:block;font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(26,18,8,0.82);margin-bottom:0.35rem;font-weight:600;transition:color 0.2s}
-.field input,.field select{width:100%;background:rgba(255,255,255,0.6);border:1.5px solid var(--border);padding:0.72rem 0.9rem;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);outline:none;transition:border-color 0.15s,background 0.15s;-webkit-appearance:none;border-radius:0}
-.field input:focus,.field select:focus{border-color:var(--wax);background:#fff}
-.field input.err{border-color:var(--red)!important;background:var(--red-bg)!important}
-.field input.err+.errmsg,.errmsg.show{display:block}
-.errmsg{display:none;font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--red);margin-top:0.25rem;letter-spacing:0.05em}
-.field label.err-label{color:var(--red)!important}
-.frow2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.frow3{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:1rem}
-@media(max-width:560px){.frow2,.frow3{grid-template-columns:1fr}}
-
-/* TIERS */
-.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;margin-bottom:1.8rem}
-@media(max-width:560px){.tiers{grid-template-columns:1fr}}
-.tier{border:2px solid var(--border);padding:1.3rem;cursor:pointer;position:relative;background:var(--cream);transition:border-color 0.15s,background 0.15s}
-.tier:hover{border-color:var(--sepia)}
-.tier.sel{border-color:var(--wax);background:rgba(192,57,43,0.025)}
-.tier.sel::after{content:'✓';position:absolute;top:0.55rem;right:0.65rem;font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--wax);font-weight:700}
-.tbadge{position:absolute;top:-1px;left:0.8rem;font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--gold);color:var(--ink);padding:0.1rem 0.4rem}
-.tname{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(26,18,8,0.8);margin-bottom:0.25rem;font-weight:600}
-.tprice{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;line-height:1.1;margin-bottom:0.3rem}
-.tprice small{font-size:0.75rem;font-family:'Cormorant Garamond',serif;font-weight:400;color:rgba(26,18,8,0.75);font-weight:500}
-.tdesc{font-size:0.78rem;color:rgba(26,18,8,0.82);font-style:italic;margin-bottom:0.65rem}
-.tfeats{list-style:none;font-size:0.82rem;color:rgba(26,18,8,0.88)}
-.tfeats li{padding:0.12rem 0 0.12rem 0.85rem;position:relative}
-.tfeats li::before{content:'—';position:absolute;left:0;opacity:0.5}
-
-/* PAPERS */
-.slabel{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(26,18,8,0.82);margin-bottom:0.55rem;font-weight:600;display:block}
-.papers{display:grid;grid-template-columns:repeat(2,1fr);gap:0.7rem;margin-bottom:1.5rem}
-@media(max-width:460px){.papers{grid-template-columns:1fr}}
-.paper{border:1.5px solid var(--border);padding:0.85rem;cursor:pointer;background:var(--cream);position:relative;transition:border-color 0.15s}
-.paper:hover{border-color:var(--sepia)}
-.paper.sel{border-color:var(--wax)}
-.paper.sel::after{content:'✓';position:absolute;top:0.4rem;right:0.5rem;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--wax)}
-.pswatch{height:4px;margin-bottom:0.5rem}
-.pname{font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.1rem;font-weight:600}
-.pdetail{font-size:0.76rem;color:rgba(26,18,8,0.75);font-style:italic}
-
-/* ADD-ONS */
-.addons{border:1px solid var(--border);background:var(--cream);margin-bottom:0.5rem}
-.addon{display:flex;align-items:center;gap:0.9rem;padding:0.8rem 1rem;border-bottom:1px solid rgba(139,105,20,0.07);cursor:pointer;transition:background 0.15s}
-.addon:last-child{border-bottom:none}
-.addon:hover{background:rgba(139,105,20,0.03)}
-.addon input[type=checkbox]{width:16px;height:16px;accent-color:var(--wax);cursor:pointer;flex-shrink:0}
-.addon span{flex:1;font-size:1rem;color:rgba(26,18,8,0.9)}
-.addon em{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--sepia);font-weight:600;font-style:normal;flex-shrink:0}
-
-/* SUMMARY */
-.sumbox{background:var(--cream);border:1px solid var(--border);padding:1.4rem;margin-bottom:1.3rem;position:relative;overflow:hidden}
-.sumbox::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--wax),var(--gold))}
-.sumtitle{font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;margin-bottom:0.9rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
-.sline{display:flex;justify-content:space-between;align-items:flex-start;padding:0.38rem 0;font-size:0.95rem;border-bottom:1px solid rgba(139,105,20,0.06)}
-.sline:last-of-type{border-bottom:none}
-.sl{color:rgba(26,18,8,0.75);font-weight:500}
-.sv{text-align:right;max-width:58%;word-break:break-word;color:rgba(26,18,8,0.92)}
-.stotalrow{display:flex;justify-content:space-between;align-items:center;padding-top:0.8rem;margin-top:0.5rem;border-top:2px solid var(--border)}
-.stotalrow .sl{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase}
-.stotalrow .sv{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700}
-
-/* STRIPE */
-.swrap{border:1px solid var(--border);padding:1rem;background:#fff;margin-bottom:0.4rem}
-#cerr{font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--red);min-height:1.2rem;margin-top:0.3rem}
-.snote{font-family:'DM Mono',monospace;font-size:0.65rem;color:rgba(26,18,8,0.55);text-align:center;margin-bottom:0.9rem}
-
-/* BUTTONS */
-.btn{width:100%;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;background:var(--wax);color:var(--cream);border:none;cursor:pointer;padding:1.05rem;transition:background 0.2s;margin-top:0.7rem;display:block}
-.btn:hover{background:var(--wax-dark)}
-.btn:disabled{opacity:0.5;cursor:not-allowed}
-.bback{display:block;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;background:transparent;color:rgba(26,18,8,0.38);border:none;cursor:pointer;padding:0.5rem 0;margin-top:0.3rem;text-align:left}
-.bback:hover{color:var(--ink)}
-
-/* SUCCESS */
-.succ{display:none;text-align:center;padding:4rem 2rem}
-.succ.on{display:block;animation:fi 0.5s ease}
-.seal-icon{width:76px;height:76px;background:var(--wax);border-radius:50%;margin:0 auto 1.8rem;display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 6px 24px rgba(192,57,43,0.3);animation:pop 0.6s cubic-bezier(0.34,1.56,0.64,1)}
-@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
-.succ h1{font-family:'Playfair Display',serif;font-style:italic;font-size:2rem;margin-bottom:0.6rem}
-.succ p{font-style:italic;color:rgba(26,18,8,0.55);margin-bottom:0.4rem}
-.oid{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--sepia);margin:1.2rem 0;padding:0.4rem 0.8rem;border:1px solid var(--border);display:inline-block}
-
-/* OVERLAY */
-.overlay{display:none;position:fixed;inset:0;background:rgba(245,239,226,0.9);backdrop-filter:blur(4px);z-index:400;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
-.overlay.on{display:flex}
-.spinner{width:50px;height:50px;background:var(--wax);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;animation:pulse 1.2s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-.overlay p{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,18,8,0.75);font-weight:500}
-#ov-msg{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(26,18,8,0.75);font-weight:500}
-</style>
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      .hero { flex-direction: column; padding: 140px 24px 60px; text-align: center; }
+      .hero::before { display: none; }
+      .hero-content { max-width: 100%; }
+      .hero-eyebrow { justify-content: center; }
+      .hero-sub { max-width: 100%; }
+      .hero-actions { justify-content: center; }
+      .hero-image { position: relative; right: auto; top: auto; transform: none; width: 100%; max-width: 380px; margin-top: 44px; }
+      .trust-strip { gap: 24px; padding: 20px 24px; }
+      .how, .types, .cta-strip { padding: 72px 24px; }
+      .steps { grid-template-columns: 1fr; }
+      .step { border-right: none; border-bottom: 1px solid var(--light-gray); }
+      .step:last-child { border-bottom: none; }
+      .types-grid { grid-template-columns: 1fr; }
+      .promise { grid-template-columns: 1fr; gap: 44px; padding: 72px 24px; }
+      footer { padding: 28px 24px; }
+    }
+  </style>
 </head>
 <body>
 
-<nav>
-  <a href="index.html" class="logo">Heart<span>post</span></a>
-  <a href="index.html" class="home-link">← Home</a>
-</nav>
+  <div class="urgency-bar">🌸 <strong>Mother's Day:</strong> Orders placed today ship within 24 hours</div>
 
-<div class="prog">
-  <div class="ps active" id="ps1"><div class="pn">1</div><span>Letter</span></div>
-  <div class="pdiv"></div>
-  <div class="ps" id="ps2"><div class="pn">2</div><span>Recipient</span></div>
-  <div class="pdiv"></div>
-  <div class="ps" id="ps3"><div class="pn">3</div><span>Package</span></div>
-  <div class="pdiv"></div>
-  <div class="ps" id="ps4"><div class="pn">4</div><span>Pay</span></div>
-</div>
+  <nav>
+    <a href="/" class="nav-logo">Heart<span>post</span></a>
+    <a href="/heartpost-checkout.html" class="nav-cta">Send a Mother's Day Letter →</a>
+  </nav>
 
-<div class="main">
-
-<!-- ===== STEP 1: WRITE ===== -->
-<div class="panel on" id="step1">
-  <h1 class="stitle">Write your letter</h1>
-  <p class="ssub">Take your time. These words will be held in someone's hands.</p>
-
-  <div class="mtabs">
-    <button class="mtab on" id="mt1" onclick="setMode('type')">✍&nbsp;&nbsp;Type my letter</button>
-    <button class="mtab" id="mt2" onclick="setMode('photo')">📸&nbsp;&nbsp;Upload my handwriting</button>
-  </div>
-
-  <!-- Type mode -->
-  <div id="md-type">
-    <div class="letter-paper">
-      <textarea class="letter-lines" id="ltxt" placeholder="Dear ___,&#10;&#10;I've been meaning to write for so long now...&#10;&#10;With love,"></textarea>
-    </div>
-  </div>
-
-  <!-- Photo mode -->
-  <div id="md-photo" style="display:none">
-
-    <!-- Instructions -->
-    <div style="background:var(--cream);border:1px solid var(--border);padding:1.2rem 1.4rem;margin-bottom:1.2rem;position:relative;overflow:hidden">
-      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--wax),var(--gold))"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sepia);margin-bottom:0.7rem;font-weight:600">📋 For a print-ready photo</div>
-      <div style="font-size:0.88rem;color:rgba(26,18,8,0.85);line-height:1.7">
-        <div style="display:flex;gap:0.6rem;margin-bottom:0.4rem"><span style="color:var(--wax);font-weight:700">1.</span><span><strong>One page per photo</strong> — don't fit multiple pages in one shot</span></div>
-        <div style="display:flex;gap:0.6rem;margin-bottom:0.4rem"><span style="color:var(--wax);font-weight:700">2.</span><span><strong>Fill the frame</strong> — your writing should take up the whole screen</span></div>
-        <div style="display:flex;gap:0.6rem;margin-bottom:0.4rem"><span style="color:var(--wax);font-weight:700">3.</span><span><strong>Flat &amp; straight</strong> — place paper on a flat surface, shoot directly above</span></div>
-        <div style="display:flex;gap:0.6rem;margin-bottom:0.4rem"><span style="color:var(--wax);font-weight:700">4.</span><span><strong>Good light</strong> — near a window or bright light, no shadows across the page</span></div>
-        <div style="display:flex;gap:0.6rem"><span style="color:var(--wax);font-weight:700">5.</span><span><strong>Keep it still</strong> — tap the screen to focus before shooting</span></div>
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-eyebrow">Mother's Day — Ships in 24hrs</div>
+      <h1>Send Mom a letter<br>she'll <em>never</em><br>throw away.</h1>
+      <p class="hero-sub">Printed on premium paper, sealed with real wax, mailed to her door. Written from your phone or in your own handwriting.</p>
+      <div class="hero-actions">
+        <a href="/heartpost-checkout.html" class="btn-primary">Send a Mother's Day Letter →</a>
+        <a href="#how" class="btn-ghost">How it works</a>
       </div>
     </div>
-
-    <!-- Hidden inputs — one per source, each recreated after use so iOS resets properly -->
-    <input type="file" id="inp-camera"       accept="image/*" capture="environment" onchange="addPhotos(event,'camera')">
-    <input type="file" id="inp-library"      accept="image/*" multiple            onchange="addPhotos(event,'library')">
-    <input type="file" id="inp-more-camera"  accept="image/*" capture="environment" onchange="addPhotos(event,'camera')">
-    <input type="file" id="inp-more-library" accept="image/*" multiple            onchange="addPhotos(event,'library')">
-
-    <!-- Two clear buttons -->
-    <div class="photo-btns" id="photo-btns">
-      <button class="photo-btn" onclick="triggerInput('inp-camera')">
-        <span class="icon">📷</span>Take photo
-      </button>
-      <button class="photo-btn" onclick="triggerInput('inp-library')">
-        <span class="icon">🖼️</span>Choose from library
-      </button>
-    </div>
-    <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:rgba(26,18,8,0.5);text-align:center;margin-top:0.5rem;letter-spacing:0.05em">Take one photo per page — add more after</div>
-    <div id="photo-err">At least one photo is required</div>
-
-    <!-- Preview grid -->
-    <div id="hprev-wrap">
-      <div class="page-meta">
-        <span class="page-meta-left" id="page-count"></span>
-      </div>
-      <div id="hprev-grid"></div>
-      <!-- Add more buttons appear below grid -->
-      <div class="add-more-row">
-        <button class="add-more-btn" onclick="triggerInput('inp-more-camera')">📷 Add another photo</button>
-        <button class="add-more-btn" onclick="triggerInput('inp-more-library')">🖼️ Add from library</button>
+    <div class="hero-image">
+      <div class="letter-card">
+        <div class="letter-to">To</div>
+        <div class="letter-name">Mom ♡</div>
+        <div class="letter-body">"I don't say it enough — but you are the reason I know how to love. Thank you for every quiet sacrifice. This letter is long overdue."</div>
+        <div class="wax-seal">H</div>
       </div>
     </div>
+  </section>
+
+  <div class="trust-strip">
+    <div><span>✉️</span> Real mailed letters</div>
+    <div><span>🕯️</span> Real wax seals</div>
+    <div><span>📬</span> USPS delivery</div>
+    <div><span>✍️</span> Upload your handwriting</div>
   </div>
 
-  <button class="btn" onclick="go(2)">Continue → Who Is This For?</button>
-</div>
-
-<!-- ===== STEP 2: RECIPIENT ===== -->
-<div class="panel" id="step2">
-  <h1 class="stitle">Who is this letter for?</h1>
-  <p class="ssub">We'll mail it directly to them. Every field below is required.</p>
-
-  <div class="frow2">
-    <div class="field" id="f-rname">
-      <label id="l-rname">Recipient's Full Name *</label>
-      <input type="text" id="rname" placeholder="Margaret Johnson" oninput="clearErr('rname')"/>
-      <span class="errmsg" id="e-rname">Recipient name is required</span>
+  <section class="how" id="how">
+    <div class="section-label">Process</div>
+    <h2 class="section-title">How it works.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Write your message</h3>
+        <p>Type from your phone or upload photos of your handwriting — we'll match your exact style.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>We prepare it</h3>
+        <p>Printed on luxury paper and sealed with real red wax. Every detail handled by us.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>We mail it</h3>
+        <p>Delivered directly to their mailbox via USPS in 2–5 business days.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h3>They open it</h3>
+        <p>A real letter they can hold, re-read, and keep forever. Nothing else feels like this.</p>
+      </div>
     </div>
-    <div class="field" id="f-sname">
-      <label id="l-sname">Your Name (sender) *</label>
-      <input type="text" id="sname" placeholder="Your name" oninput="clearErr('sname')"/>
-      <span class="errmsg" id="e-sname">Your name is required</span>
+  </section>
+
+  <section class="types" id="pricing">
+    <div class="section-label">Options</div>
+    <h2 class="section-title">Choose your style.</h2>
+    <div class="types-grid">
+      <div class="type-card">
+        <div class="type-icon">✍️</div>
+        <h3>Typed Letter</h3>
+        <p>You write the message, we format it beautifully on Heartpost letterhead and mail it with a wax seal.</p>
+        <div class="type-price">$7.99 <span>per letter</span></div>
+      </div>
+      <div class="type-card featured">
+        <div class="type-icon">📸</div>
+        <h3>Handwriting Transfer</h3>
+        <p>Upload photos of your handwriting. We recreate your exact style so it looks like you wrote it yourself.</p>
+        <div class="type-price">$14.99 <span>per letter</span></div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="field" id="f-addr">
-    <label id="l-addr">Street Address *</label>
-    <input type="text" id="addr" placeholder="412 Elm Street" oninput="clearErr('addr')"/>
-    <span class="errmsg" id="e-addr">Street address is required</span>
-  </div>
-
-  <div class="field" id="f-addr2">
-    <label>Apartment / Suite / Unit</label>
-    <input type="text" id="addr2" placeholder="Apt 2B (optional)"/>
-  </div>
-
-  <div class="frow3">
-    <div class="field" id="f-city">
-      <label id="l-city">City *</label>
-      <input type="text" id="city" placeholder="Burlington" oninput="clearErr('city')"/>
-      <span class="errmsg" id="e-city">City is required</span>
+  <section class="promise">
+    <div>
+      <h2>Every letter is<br><em>a keepsake.</em></h2>
+      <p>We obsess over every detail — the paper weight, the fold, the seal — because whoever receives this deserves to feel it.</p>
     </div>
-    <div class="field" id="f-state">
-      <label id="l-state">State *</label>
-      <input type="text" id="state" placeholder="VT" oninput="clearErr('state')"/>
-      <span class="errmsg" id="e-state">State is required</span>
+    <div class="promise-items">
+      <div class="promise-item">
+        <div class="promise-dot"></div>
+        <div><h4>Premium cotton paper</h4><p>The kind that feels like a letter worth saving.</p></div>
+      </div>
+      <div class="promise-item">
+        <div class="promise-dot"></div>
+        <div><h4>Hand-applied wax seal</h4><p>Each letter sealed personally before it ships.</p></div>
+      </div>
+      <div class="promise-item">
+        <div class="promise-dot"></div>
+        <div><h4>USPS First Class mail</h4><p>Tracked and delivered in 2–5 business days.</p></div>
+      </div>
+      <div class="promise-item">
+        <div class="promise-dot"></div>
+        <div><h4>Your handwriting, preserved</h4><p>AI-matched fonts recreate your exact writing style.</p></div>
+      </div>
     </div>
-    <div class="field" id="f-zip">
-      <label id="l-zip">ZIP / Postal Code *</label>
-      <input type="text" id="zip" placeholder="05401" oninput="clearErr('zip')"/>
-      <span class="errmsg" id="e-zip">ZIP code is required</span>
-    </div>
-  </div>
+  </section>
+
+  <section class="cta-strip">
+    <h2>Mom deserves more<br>than a <em>text.</em></h2>
+    <p>Order today and she'll have it in her hands for Mother's Day. Takes 3 minutes — means everything.</p>
+    <a href="/heartpost-checkout.html" class="btn-primary">Send a Mother's Day Letter →</a>
+  </section>
+
+  <footer>
+    <div class="logo">Heart<span>post</span></div>
+    <p>© 2026 Heartpost. Premium letters, delivered.</p>
+  </footer>
 
-  <div class="field">
-    <label>Country</label>
-    <select id="country">
-      <option value="US">United States</option>
-      <option value="CA">Canada</option>
-      <option value="GB">United Kingdom</option>
-      <option value="AU">Australia</option>
-      <option value="NG">Nigeria</option>
-      <option value="KE">Kenya</option>
-      <option value="GH">Ghana</option>
-      <option value="ZA">South Africa</option>
-      <option value="FR">France</option>
-      <option value="DE">Germany</option>
-      <option value="OTHER">Other country</option>
-    </select>
-  </div>
-
-  <button class="btn" onclick="go(3)">Continue → Choose Package</button>
-  <button class="bback" onclick="go(1)">← Back to Letter</button>
-</div>
-
-<!-- ===== STEP 3: PACKAGE ===== -->
-<div class="panel" id="step3">
-  <h1 class="stitle">Choose your package</h1>
-  <p class="ssub">Every option includes premium cotton paper, real wax seal, and USPS mail.</p>
-
-  <div class="tiers">
-    <div class="tier" id="t-single" onclick="pickTier(this,'single',7.99,'Single Letter')">
-      <div class="tname">Single</div>
-      <div class="tprice">$7<small>.99</small></div>
-      <div class="tdesc">One letter, anywhere in the US.</div>
-      <ul class="tfeats">
-        <li>Cotton paper</li>
-        <li>Wax seal</li>
-        <li>USPS First Class</li>
-      </ul>
-    </div>
-    <div class="tier sel" id="t-bundle" onclick="pickTier(this,'bundle',24.99,'Bundle — 5 Letters')">
-      <div class="tbadge">Best Value</div>
-      <div class="tname">Bundle</div>
-      <div class="tprice">$24<small>.99 / 5</small></div>
-      <div class="tdesc">Stock up, write anytime.</div>
-      <ul class="tfeats">
-        <li>5 letters</li>
-        <li>Save $15</li>
-        <li>Priority processing</li>
-        <li>Return stamp</li>
-      </ul>
-    </div>
-    <div class="tier" id="t-intl" onclick="pickTier(this,'intl',11.99,'International Letter')">
-      <div class="tname">International</div>
-      <div class="tprice">$11<small>.99</small></div>
-      <div class="tdesc">Across an ocean.</div>
-      <ul class="tfeats">
-        <li>180+ countries</li>
-        <li>Airmail tracked</li>
-        <li>7–14 days</li>
-      </ul>
-    </div>
-  </div>
-
-  <span class="slabel">Paper & Wax Seal Style</span>
-  <div class="papers">
-    <div class="paper sel" id="p0" onclick="pickPaper(0,'Ivory Laid — Scarlet Wax')">
-      <div class="pswatch" style="background:linear-gradient(90deg,#f5efe2 60%,#c0392b 60%)"></div>
-      <div class="pname">Ivory Laid</div>
-      <div class="pdetail">Scarlet wax seal</div>
-    </div>
-    <div class="paper" id="p1" onclick="pickPaper(1,'Cream Linen — Midnight Wax')">
-      <div class="pswatch" style="background:linear-gradient(90deg,#f0ead8 60%,#2c2c2c 60%)"></div>
-      <div class="pname">Cream Linen</div>
-      <div class="pdetail">Midnight wax seal</div>
-    </div>
-    <div class="paper" id="p2" onclick="pickPaper(2,'Pale Blue — Gold Wax')">
-      <div class="pswatch" style="background:linear-gradient(90deg,#dde8f0 60%,#d4a017 60%)"></div>
-      <div class="pname">Pale Blue</div>
-      <div class="pdetail">Gold wax seal</div>
-    </div>
-    <div class="paper" id="p3" onclick="pickPaper(3,'Blush Écru — Rose Wax')">
-      <div class="pswatch" style="background:linear-gradient(90deg,#f0e4dc 60%,#c0627a 60%)"></div>
-      <div class="pname">Blush Écru</div>
-      <div class="pdetail">Rose wax seal</div>
-    </div>
-  </div>
-
-  <span class="slabel">Add-ons (optional)</span>
-  <div class="addons">
-    <label class="addon">
-      <input type="checkbox" id="ao1" onchange="recalc()">
-      <span>USPS tracking + delivery confirmation</span>
-      <em>+$1.00</em>
-    </label>
-    <label class="addon">
-      <input type="checkbox" id="ao2" onchange="recalc()">
-      <span>Rush processing — same day if ordered by 2pm ET</span>
-      <em>+$3.00</em>
-    </label>
-    <label class="addon">
-      <input type="checkbox" id="ao3" onchange="recalc()">
-      <span>Handwriting transfer — we replicate your writing style</span>
-      <em>+$2.00</em>
-    </label>
-  </div>
-
-  <button class="btn" onclick="go(4)">Continue → Review & Pay</button>
-  <button class="bback" onclick="go(2)">← Back to Recipient</button>
-</div>
-
-<!-- ===== STEP 4: PAY ===== -->
-<div class="panel" id="step4">
-  <h1 class="stitle">Review & pay</h1>
-  <p class="ssub">One last look — then your letter gets sealed.</p>
-
-  <div class="sumbox">
-    <div class="sumtitle">Order Summary</div>
-    <div class="sline"><span class="sl">Package</span><span class="sv" id="s1">—</span></div>
-    <div class="sline"><span class="sl">Style</span><span class="sv" id="s2">—</span></div>
-    <div class="sline"><span class="sl">To</span><span class="sv" id="s3">—</span></div>
-    <div class="sline"><span class="sl">Address</span><span class="sv" id="s4">—</span></div>
-    <div class="sline" id="s-pages" style="display:none"><span class="sl">Pages</span><span class="sv" id="s5">—</span></div>
-    <div class="sline" id="sr1" style="display:none"><span class="sl">Tracking</span><span class="sv">+$1.00</span></div>
-    <div class="sline" id="sr2" style="display:none"><span class="sl">Rush</span><span class="sv">+$3.00</span></div>
-    <div class="sline" id="sr3" style="display:none"><span class="sl">Handwriting</span><span class="sv">+$2.00</span></div>
-    <div class="stotalrow"><span class="sl">Total</span><span class="sv" id="stot">$24.99</span></div>
-  </div>
-
-  <div class="frow2" style="margin-bottom:1rem">
-    <div class="field" id="f-email" style="margin:0">
-      <label id="l-email">Your Email *</label>
-      <input type="email" id="email" placeholder="you@email.com" oninput="clearErr('email')"/>
-      <span class="errmsg" id="e-email">Email is required</span>
-    </div>
-    <div class="field" style="margin:0">
-      <label>Phone (optional)</label>
-      <input type="tel" id="phone" placeholder="(555) 000-0000"/>
-    </div>
-  </div>
-
-  <div class="field">
-    <label>Card Details *</label>
-    <div class="swrap"><div id="card-element"></div></div>
-    <div id="cerr"></div>
-  </div>
-
-  <div class="snote">🔒 Secured by Stripe · SSL encrypted · We never store card data</div>
-  <button class="btn" id="paybtn" onclick="pay()">Seal &amp; Send This Letter ✉</button>
-  <button class="bback" onclick="go(3)">← Back to Package</button>
-</div>
-
-<!-- SUCCESS -->
-<div class="succ" id="succ">
-  <div class="seal-icon">✉</div>
-  <h1>Your letter is sealed.</h1>
-  <p>We're printing, wax-sealing, and posting it right now.</p>
-  <p>Expect delivery in 3–7 business days.</p>
-  <div class="oid" id="oid">Order #HPT-000000</div>
-  <div style="margin-top:1.5rem">
-    <a href="index.html" style="font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--wax);letter-spacing:0.1em;text-transform:uppercase;text-decoration:none">← Write Another Letter</a>
-  </div>
-</div>
-
-</div><!-- /main -->
-
-<div class="overlay" id="ov">
-  <div class="spinner">♥</div>
-  <p id="ov-msg">Sealing your letter...</p>
-</div>
-
-<script>
-// ── CONFIG ──
-const STRIPE_KEY = 'pk_live_51TNcEAKGuVFefNHRBatkZodJY7iBgHgsFAj3I7G8D70eydegH5ukG2w94uPOX8fGgHugQsSkIWQdBM12rhLLQih600Xxno4daU';
-const BACKEND    = 'https://heartpost-production.up.railway.app';
-
-// ── STATE ──
-let T = { id:'bundle', price:24.99, name:'Bundle — 5 Letters' };
-let P = { idx:0, name:'Ivory Laid — Scarlet Wax' };
-let M = 'type';
-
-// Photo file list — maintained as an array so users can add/remove individually
-let photoFiles = [];
-
-// ── STRIPE ──
-const stripe = Stripe(STRIPE_KEY);
-const elms   = stripe.elements();
-const card   = elms.create('card', {
-  style: {
-    base: {
-      fontFamily: '"Cormorant Garamond", serif',
-      fontSize: '16px',
-      fontStyle: 'italic',
-      color: '#1a1208',
-      '::placeholder': { color: 'rgba(26,18,8,0.3)', fontStyle: 'italic' },
-      iconColor: '#8b6914'
-    },
-    invalid: { color: '#c0392b', iconColor: '#c0392b' }
-  }
-});
-card.mount('#card-element');
-card.on('change', e => {
-  document.getElementById('cerr').textContent = e.error ? e.error.message : '';
-});
-
-// ── MODE ──
-function setMode(m) {
-  M = m;
-  document.getElementById('md-type').style.display  = m === 'type'  ? 'block' : 'none';
-  document.getElementById('md-photo').style.display = m === 'photo' ? 'block' : 'none';
-  document.getElementById('mt1').classList.toggle('on', m === 'type');
-  document.getElementById('mt2').classList.toggle('on', m === 'photo');
-}
-
-// ── PHOTO MANAGEMENT ──
-// iOS Safari fix: programmatically click the input, then clone+replace it
-// so the same input can be triggered again after use.
-function triggerInput(id) {
-  clearPhotoErr();
-  document.getElementById(id).click();
-}
-
-function addPhotos(e, source) {
-  const incoming = Array.from(e.target.files || []);
-
-  // Clone and replace the input immediately so iOS resets it for next use
-  const old = e.target;
-  const clone = old.cloneNode(false);
-  clone.onchange = (ev) => addPhotos(ev, source);
-  old.parentNode.replaceChild(clone, old);
-
-  if (!incoming.length) return;
-
-  // Deduplicate by name + size
-  incoming.forEach(file => {
-    const exists = photoFiles.some(f => f.name === file.name && f.size === file.size);
-    if (!exists) photoFiles.push(file);
-  });
-
-  renderPhotoGrid();
-  clearPhotoErr();
-}
-
-function removePhoto(idx) {
-  photoFiles.splice(idx, 1);
-  renderPhotoGrid();
-}
-
-function renderPhotoGrid() {
-  const wrap  = document.getElementById('hprev-wrap');
-  const grid  = document.getElementById('hprev-grid');
-  const count = document.getElementById('page-count');
-
-  if (!photoFiles.length) {
-    wrap.style.display = 'none';
-    return;
-  }
-
-  wrap.style.display = 'block';
-  count.textContent  = photoFiles.length + ' page' + (photoFiles.length > 1 ? 's' : '') + ' selected';
-
-  grid.innerHTML = '';
-  photoFiles.forEach((file, i) => {
-    const idx = i;
-    const r = new FileReader();
-    r.onload = ev => {
-      const thumb = document.createElement('div');
-      thumb.className = 'photo-thumb';
-
-      const img = document.createElement('img');
-      img.src = ev.target.result;
-      img.alt = 'Page ' + (idx + 1);
-
-      const footer = document.createElement('div');
-      footer.className = 'photo-thumb-footer';
-
-      const label = document.createElement('span');
-      label.className = 'photo-page-label';
-      label.textContent = 'Page ' + (idx + 1);
-
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'photo-remove';
-      removeBtn.innerHTML = '✕ Remove';
-      removeBtn.title = 'Remove page ' + (idx + 1);
-      function doRemove(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        removePhoto(idx);
-      }
-      removeBtn.addEventListener('click', doRemove);
-      removeBtn.addEventListener('touchend', doRemove);
-
-      footer.appendChild(label);
-      footer.appendChild(removeBtn);
-      thumb.appendChild(img);
-      thumb.appendChild(footer);
-      grid.appendChild(thumb);
-    };
-    r.readAsDataURL(file);
-  });
-}
-
-function clearPhotoErr() {
-  document.getElementById('photo-err').classList.remove('show');
-  document.getElementById('photo-btns').classList.remove('err');
-}
-
-// ── TIER ──
-function pickTier(el, id, price, name) {
-  document.querySelectorAll('.tier').forEach(t => t.classList.remove('sel'));
-  el.classList.add('sel');
-  T = { id, price, name };
-  recalc();
-}
-
-// ── PAPER ──
-function pickPaper(idx, name) {
-  for (let i = 0; i < 4; i++) document.getElementById('p' + i).classList.remove('sel');
-  document.getElementById('p' + idx).classList.add('sel');
-  P = { idx, name };
-}
-
-// ── TOTAL ──
-function calcTotal() {
-  let t = T.price;
-  if (document.getElementById('ao1').checked) t += 1;
-  if (document.getElementById('ao2').checked) t += 3;
-  if (document.getElementById('ao3').checked) t += 2;
-  return t;
-}
-function recalc() {
-  document.getElementById('stot').textContent = '$' + calcTotal().toFixed(2);
-  document.getElementById('sr1').style.display = document.getElementById('ao1').checked ? 'flex' : 'none';
-  document.getElementById('sr2').style.display = document.getElementById('ao2').checked ? 'flex' : 'none';
-  document.getElementById('sr3').style.display = document.getElementById('ao3').checked ? 'flex' : 'none';
-}
-
-// ── VALIDATION ──
-const ADDR_FIELDS = [
-  { id: 'rname', label: 'Recipient name is required' },
-  { id: 'sname', label: 'Your name is required' },
-  { id: 'addr',  label: 'Street address is required' },
-  { id: 'city',  label: 'City is required' },
-  { id: 'state', label: 'State is required' },
-  { id: 'zip',   label: 'ZIP / postal code is required' },
-];
-
-function markErr(id, msg) {
-  const el  = document.getElementById(id);
-  const lbl = document.getElementById('l-' + id);
-  const err = document.getElementById('e-' + id);
-  if (el)  el.classList.add('err');
-  if (lbl) lbl.classList.add('err-label');
-  if (err) { err.textContent = msg; err.classList.add('show'); }
-}
-
-function clearErr(id) {
-  const el  = document.getElementById(id);
-  const lbl = document.getElementById('l-' + id);
-  const err = document.getElementById('e-' + id);
-  if (el)  el.classList.remove('err');
-  if (lbl) lbl.classList.remove('err-label');
-  if (err) err.classList.remove('show');
-}
-
-function validateAddress() {
-  let ok = true, first = null;
-  for (const f of ADDR_FIELDS) {
-    const el = document.getElementById(f.id);
-    if (!el || !el.value.trim()) {
-      markErr(f.id, f.label);
-      if (!first) first = el;
-      ok = false;
-    }
-  }
-  if (!ok && first) first.focus();
-  return ok;
-}
-
-function validateStep1() {
-  if (M === 'type') {
-    const el = document.getElementById('ltxt');
-    if (!el.value.trim()) {
-      el.style.borderColor = 'var(--red)';
-      el.focus();
-      return false;
-    }
-    el.style.borderColor = '';
-    return true;
-  }
-  // Photo mode — require at least one photo
-  if (!photoFiles.length) {
-    const err  = document.getElementById('photo-err');
-    const btns = document.getElementById('photo-btns');
-    err.classList.add('show');
-    btns.classList.add('err');
-    btns.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return false;
-  }
-  return true;
-}
-
-// ── NAVIGATE ──
-let currentStep = 1;
-
-function go(n) {
-  if (n > currentStep) {
-    if (n === 2 && !validateStep1()) return;
-    if (n === 3 && !validateAddress()) return;
-  }
-  if (n === 4) buildSummary();
-
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
-  document.getElementById('step' + n).classList.add('on');
-
-  for (let i = 1; i <= 4; i++) {
-    const ps = document.getElementById('ps' + i);
-    ps.classList.remove('active', 'done');
-    if (i < n) ps.classList.add('done');
-    else if (i === n) ps.classList.add('active');
-  }
-
-  document.querySelectorAll('.ps.done').forEach(ps => {
-    ps.onclick = () => go(parseInt(ps.id.replace('ps', '')));
-  });
-
-  currentStep = n;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ── BUILD SUMMARY ──
-function buildSummary() {
-  document.getElementById('s1').textContent = T.name + '  —  $' + T.price.toFixed(2);
-  document.getElementById('s2').textContent = P.name;
-  document.getElementById('s3').textContent = document.getElementById('rname').value;
-  const addrParts = [
-    document.getElementById('addr').value,
-    document.getElementById('addr2').value,
-    document.getElementById('city').value,
-    document.getElementById('state').value,
-    document.getElementById('zip').value,
-    document.getElementById('country').options[document.getElementById('country').selectedIndex].text
-  ].filter(Boolean);
-  document.getElementById('s4').textContent = addrParts.join(', ');
-
-  // Show page count in summary for photo mode
-  const pagesRow = document.getElementById('s-pages');
-  if (M === 'photo' && photoFiles.length) {
-    pagesRow.style.display = 'flex';
-    document.getElementById('s5').textContent =
-      photoFiles.length + ' handwritten page' + (photoFiles.length > 1 ? 's' : '');
-  } else {
-    pagesRow.style.display = 'none';
-  }
-
-  recalc();
-}
-
-// ── UPLOAD PHOTOS TO BACKEND ──
-async function uploadPhotos() {
-  if (!photoFiles.length) return [];
-  const fd = new FormData();
-  photoFiles.forEach((file, i) => fd.append('photos', file, file.name));
-
-  const res = await fetch(BACKEND + '/api/upload-photos', {
-    method: 'POST',
-    body: fd
-  });
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e.error || 'Photo upload failed — please try again');
-  }
-  const data = await res.json();
-  // Expect backend to return { urls: ['https://...', ...] }
-  return data.urls || [];
-}
-
-// ── PAY ──
-async function pay() {
-  const emailEl = document.getElementById('email');
-  if (!emailEl.value.trim()) {
-    markErr('email', 'Email is required');
-    emailEl.focus();
-    return;
-  }
-  clearErr('email');
-
-  const btn = document.getElementById('paybtn');
-  btn.disabled = true;
-  btn.textContent = 'Processing...';
-  document.getElementById('ov').classList.add('on');
-  document.getElementById('cerr').textContent = '';
-
-  try {
-    // ① Upload photos first (if any)
-    let photoUrls = [];
-    if (M === 'photo' && photoFiles.length) {
-      document.getElementById('ov-msg').textContent =
-        'Uploading ' + photoFiles.length + ' page' + (photoFiles.length > 1 ? 's' : '') + '...';
-      photoUrls = await uploadPhotos();
-    }
-
-    document.getElementById('ov-msg').textContent = 'Sealing your letter...';
-
-    // ② Build payload
-    const addrLine = [
-      document.getElementById('addr').value,
-      document.getElementById('addr2').value
-    ].filter(Boolean).join(', ');
-
-    const cityStateZip = [
-      document.getElementById('city').value,
-      document.getElementById('state').value,
-      document.getElementById('zip').value
-    ].filter(Boolean).join(', ');
-
-    const payload = {
-      amount:        calcTotal(),
-      recipientName: document.getElementById('rname').value,
-      address:       addrLine,
-      city:          cityStateZip,
-      senderName:    document.getElementById('sname').value,
-      style:         P.name,
-      letterType:    M === 'type' ? 'Typed' : 'Handwriting Transfer',
-      customerEmail: emailEl.value.trim(),
-      letterBody:    M === 'type'
-                       ? document.getElementById('ltxt').value
-                       : '[Handwriting photos — see photoUrls]',
-      photoUrls,         // array of uploaded photo URLs (empty for typed)
-      photoCount:    photoFiles.length,
-      rush:          document.getElementById('ao2').checked,
-      tracking:      document.getElementById('ao1').checked,
-    };
-
-    // ③ Create payment intent
-    const res = await fetch(BACKEND + '/api/create-payment-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const e = await res.json();
-      throw new Error(e.error || 'Server error — please try again');
-    }
-
-    const { clientSecret } = await res.json();
-
-    // ④ Confirm card payment
-    const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card,
-        billing_details: {
-          name:  document.getElementById('sname').value,
-          email: emailEl.value.trim()
-        }
-      }
-    });
-
-    if (error) throw new Error(error.message);
-
-    if (paymentIntent.status === 'succeeded') {
-      document.getElementById('ov').classList.remove('on');
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
-      document.getElementById('oid').textContent = 'Order #HPT-' + Date.now().toString().slice(-6);
-      document.getElementById('succ').classList.add('on');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-  } catch (err) {
-    document.getElementById('cerr').textContent = err.message || 'Payment failed. Please try again.';
-    btn.disabled = false;
-    btn.textContent = 'Seal & Send This Letter ✉';
-    document.getElementById('ov').classList.remove('on');
-    document.getElementById('ov-msg').textContent = 'Sealing your letter...';
-  }
-}
-</script>
 </body>
 </html>
