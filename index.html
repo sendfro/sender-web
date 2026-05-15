@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heartpost — Handwritten Letters, Delivered</title>
+  <title>Heartpost — For the words that deserve more than a text</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --cream: #F9F5F0;
@@ -15,231 +17,1067 @@
       --warm-gray: #8C7B6E;
       --light-gray: #E8E0D8;
       --parchment: #F2EBE0;
+      --gold: #D4A017;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; overflow-x: hidden; }
 
-    .urgency-bar { background: var(--red); color: white; text-align: center; padding: 10px 24px; font-size: 13px; letter-spacing: 0.04em; position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
-    .urgency-bar strong { font-weight: 500; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    nav { position: fixed; top: 36px; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 18px 48px; background: rgba(249,245,240,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--light-gray); }
-    .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; letter-spacing: 0.08em; color: var(--ink); text-decoration: none; }
-    .nav-logo span { color: var(--red); }
-    .nav-cta { background: var(--ink); color: var(--cream); text-decoration: none; padding: 10px 24px; font-size: 13px; letter-spacing: 0.06em; font-weight: 400; transition: background 0.2s; }
-    .nav-cta:hover { background: var(--red); }
+    html {
+      scroll-behavior: smooth;
+    }
 
-    .hero { min-height: 100vh; display: flex; align-items: center; padding: 160px 48px 80px; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: 0; right: 0; width: 52%; height: 100%; background: var(--parchment); z-index: 0; }
-    .hero-content { position: relative; z-index: 1; max-width: 540px; }
-    .hero-eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-    .hero-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--red); }
-    h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(46px, 6vw, 80px); font-weight: 300; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 24px; }
-    h1 em { font-style: italic; color: var(--red); }
-    .hero-sub { font-size: 16px; line-height: 1.75; color: var(--warm-gray); max-width: 400px; margin-bottom: 44px; }
-    .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .btn-primary { background: var(--red); color: white; text-decoration: none; padding: 16px 36px; font-size: 14px; letter-spacing: 0.05em; font-family: 'DM Sans', sans-serif; font-weight: 400; transition: opacity 0.2s; }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-ghost { color: var(--ink); text-decoration: none; font-size: 14px; letter-spacing: 0.04em; border-bottom: 1px solid var(--ink); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
-    .btn-ghost:hover { color: var(--red); border-color: var(--red); }
-    .hero-image { position: absolute; right: 48px; top: 50%; transform: translateY(-50%); z-index: 1; width: 40%; max-width: 480px; }
-    .letter-card { background: white; padding: 40px 44px; box-shadow: 0 12px 60px rgba(26,20,16,0.12); position: relative; }
-    .letter-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--red); }
-    .letter-to { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-gray); margin-bottom: 6px; }
-    .letter-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 400; margin-bottom: 20px; }
-    .letter-body { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-style: italic; line-height: 1.9; color: #3A2E26; }
-    .wax-seal { width: 52px; height: 52px; background: var(--red); border-radius: 50%; margin-top: 28px; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
 
-    .trust-strip { background: var(--ink); padding: 20px 48px; display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
-    .trust-strip div { color: #A89888; font-size: 13px; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
-    .trust-strip div span { font-size: 16px; }
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 48px;
+      background: rgba(249,245,240,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--light-gray);
+    }
 
-    .how { padding: 100px 48px; background: white; }
-    .section-label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
-    .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 4vw, 50px); font-weight: 300; line-height: 1.1; margin-bottom: 56px; }
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border: 1px solid var(--light-gray); }
-    .step { padding: 44px 32px; border-right: 1px solid var(--light-gray); }
-    .step:last-child { border-right: none; }
-    .step-num { font-family: 'Cormorant Garamond', serif; font-size: 60px; font-weight: 300; color: var(--light-gray); line-height: 1; margin-bottom: 16px; }
-    .step h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; margin-bottom: 10px; }
-    .step p { font-size: 14px; line-height: 1.7; color: var(--warm-gray); }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      text-decoration: none;
+    }
 
-    .types { padding: 100px 48px; background: var(--parchment); }
-    .types-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 56px; }
-    .type-card { background: white; padding: 48px 40px; position: relative; transition: transform 0.3s; }
-    .type-card:hover { transform: translateY(-4px); }
-    .type-card.featured::after { content: 'Most Popular'; position: absolute; top: 24px; right: 24px; background: var(--red); color: white; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; }
-    .type-icon { font-size: 32px; margin-bottom: 18px; }
-    .type-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; margin-bottom: 12px; }
-    .type-card p { font-size: 14px; line-height: 1.7; color: var(--warm-gray); margin-bottom: 24px; }
-    .type-price { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; color: var(--red); }
-    .type-price span { font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 300; color: var(--warm-gray); }
+    .nav-logo span {
+      color: var(--red);
+    }
 
-    .promise { padding: 100px 48px; background: var(--ink); color: var(--cream); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-    .promise h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 4vw, 52px); font-weight: 300; line-height: 1.1; margin-bottom: 20px; }
-    .promise h2 em { color: var(--red); font-style: italic; }
-    .promise > div > p { font-size: 15px; line-height: 1.8; color: #A89888; margin-bottom: 32px; }
-    .promise-items { display: flex; flex-direction: column; gap: 22px; }
-    .promise-item { display: flex; gap: 18px; align-items: flex-start; }
-    .promise-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; margin-top: 8px; flex-shrink: 0; }
-    .promise-item h4 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; margin-bottom: 4px; }
-    .promise-item p { font-size: 13px; color: #7A6A5E; }
+    .nav-cta {
+      background: var(--ink);
+      color: var(--cream);
+      text-decoration: none;
+      padding: 10px 24px;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      font-weight: 400;
+      transition: background 0.2s;
+    }
 
-    .cta-strip { padding: 100px 48px; text-align: center; background: var(--cream); }
-    .cta-strip h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(38px, 5vw, 64px); font-weight: 300; line-height: 1.1; margin-bottom: 16px; }
-    .cta-strip h2 em { font-style: italic; color: var(--red); }
-    .cta-strip p { font-size: 16px; color: var(--warm-gray); max-width: 440px; margin: 0 auto 36px; line-height: 1.7; }
+    .nav-cta:hover {
+      background: var(--red);
+    }
 
-    footer { padding: 36px 48px; background: var(--ink); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    footer .logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--cream); letter-spacing: 0.08em; }
-    footer .logo span { color: var(--red); }
-    footer p { font-size: 12px; color: #5A4A3E; letter-spacing: 0.04em; }
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 48px 80px;
+      position: relative;
+      overflow: hidden;
+    }
 
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    .hero-content > * { animation: fadeUp 0.7s ease forwards; opacity: 0; }
-    .hero-eyebrow { animation-delay: 0.1s; }
-    h1 { animation-delay: 0.2s; }
-    .hero-sub { animation-delay: 0.35s; }
-    .hero-actions { animation-delay: 0.5s; }
-    .hero-image { animation: fadeUp 0.9s ease 0.3s forwards; opacity: 0; }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      background: var(--parchment);
+      z-index: 0;
+    }
 
-    @media (max-width: 900px) {
-      nav { padding: 16px 24px; }
-      .hero { flex-direction: column; padding: 140px 24px 60px; text-align: center; }
-      .hero::before { display: none; }
-      .hero-content { max-width: 100%; }
-      .hero-eyebrow { justify-content: center; }
-      .hero-sub { max-width: 100%; }
-      .hero-actions { justify-content: center; }
-      .hero-image { position: relative; right: auto; top: auto; transform: none; width: 100%; max-width: 380px; margin-top: 44px; }
-      .trust-strip { gap: 24px; padding: 20px 24px; }
-      .how, .types, .cta-strip { padding: 72px 24px; }
-      .steps { grid-template-columns: 1fr; }
-      .step { border-right: none; border-bottom: 1px solid var(--light-gray); }
-      .step:last-child { border-bottom: none; }
-      .types-grid { grid-template-columns: 1fr; }
-      .promise { grid-template-columns: 1fr; gap: 44px; padding: 72px 24px; }
-      footer { padding: 28px 24px; }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 32px;
+      height: 1px;
+      background: var(--red);
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 6vw, 82px);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      margin-bottom: 24px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--red);
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--warm-gray);
+      max-width: 420px;
+      margin-bottom: 16px;
+    }
+
+    .trust-line {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--warm-gray);
+      margin-bottom: 44px;
+    }
+
+    .trust-line span {
+      margin: 0 6px;
+      opacity: 0.4;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      text-decoration: none;
+      padding: 16px 36px;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.85;
+    }
+
+    .btn-ghost {
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .btn-ghost:hover {
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .hero-image {
+      position: absolute;
+      right: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+      width: 40%;
+      max-width: 460px;
+    }
+
+    .letter-card {
+      background: white;
+      padding: 38px 42px;
+      box-shadow: 0 12px 60px rgba(26,20,16,0.12);
+      position: relative;
+    }
+
+    .letter-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--red);
+    }
+
+    .letter-to {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--warm-gray);
+      margin-bottom: 6px;
+    }
+
+    .letter-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 400;
+      margin-bottom: 18px;
+    }
+
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      font-style: italic;
+      line-height: 1.9;
+      color: #3A2E26;
+    }
+
+    .wax-seal {
+      width: 48px;
+      height: 48px;
+      background: var(--red);
+      border-radius: 50%;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-style: italic;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .positioning {
+      background: var(--ink);
+      padding: 56px 48px;
+      text-align: center;
+    }
+
+    .positioning h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(28px, 3.5vw, 44px);
+      font-weight: 300;
+      color: var(--cream);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .positioning h2 em {
+      font-style: italic;
+      color: var(--red);
+    }
+
+    .positioning p {
+      font-size: 15px;
+      color: #A89888;
+      letter-spacing: 0.02em;
+    }
+
+    .trust-strip {
+      background: var(--parchment);
+      border-top: 1px solid var(--light-gray);
+      border-bottom: 1px solid var(--light-gray);
+      padding: 18px 48px;
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .trust-strip div {
+      color: var(--warm-gray);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .intent-section {
+      padding: 100px 48px;
+      background: white;
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 300;
+      line-height: 1.15;
+      margin-bottom: 48px;
+    }
+
+    .intent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .intent-card {
+      background: var(--cream);
+      border: 1px solid var(--light-gray);
+      padding: 28px 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+
+    .intent-card:hover {
+      border-color: var(--red);
+      background: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(26,20,16,0.08);
+    }
+
+    .intent-card::after {
+      content: '→';
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: var(--red);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .intent-card:hover::after {
+      opacity: 1;
+    }
+
+    .intent-emoji {
+      font-size: 28px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .intent-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 6px;
+    }
+
+    .intent-card p {
+      font-size: 13px;
+      color: var(--warm-gray);
+      line-height: 1.5;
+    }
+
+    .how {
+      padding: 100px 48px;
+      background: var(--parchment);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--light-gray);
+    }
+
+    .step {
+      padding: 40px 28px;
+      border-right: 1px solid var(--light-gray);
+      background: white;
+    }
+
+    .step:last-child {
+      border-right: none;
+    }
+
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 56px;
+      font-weight: 300;
+      color: var(--light-gray);
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+
+    .step h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--warm-gray);
+    }
+
+    .pricing {
+      padding: 100px 48px;
+      background: white;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 56px;
+    }
+
+    .price-card {
+      background: var(--cream);
+      padding: 44px 36px;
+      position: relative;
+      transition: transform 0.2s;
+      border: 1px solid var(--light-gray);
+    }
+
+    .price-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .price-card.featured {
+      background: white;
+      border-color: var(--red);
+    }
+
+    .price-card.featured::before {
+      content: 'Most Popular';
+      position: absolute;
+      top: -1px;
+      left: 28px;
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .price-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .price-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px;
+      font-weight: 300;
+      color: var(--red);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .price-amount sup {
+      font-size: 24px;
+      vertical-align: super;
+    }
+
+    .price-card p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--warm-gray);
+      margin-bottom: 24px;
+    }
+
+    .price-card ul {
+      list-style: none;
+    }
+
+    .price-card ul li {
+      font-size: 13px;
+      padding: 5px 0 5px 16px;
+      position: relative;
+      color: var(--ink);
+    }
+
+    .price-card ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      opacity: 0.4;
+    }
+
+    .price-cta {
+      display: block;
+      text-align: center;
+      margin-top: 28px;
+      background: var(--ink);
+      color: var(--cream);
+      text-decoration: none;
+      padding: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+    }
+
+    .price-cta:hover {
+      background: var(--red);
+    }
+
+    .price-card.featured .price-cta {
+      background: var(--red);
+    }
+
+    .price-card.featured .price-cta:hover {
+      opacity: 0.85;
+    }
+
+    .promise {
+      padding: 100px 48px;
+      background: var(--ink);
+      color: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .promise h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 4vw, 50px);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    .promise h2 em {
+      color: var(--red);
+      font-style: italic;
+    }
+
+    .promise > div > p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: #A89888;
+      margin-bottom: 28px;
+    }
+
+    .promise-items {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .promise-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .promise-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .promise-item h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px;
+      font-weight: 400;
+      margin-bottom: 3px;
+    }
+
+    .promise-item p {
+      font-size: 13px;
+      color: #A89888;
+    }
+
+    .cta-strip {
+      padding: 100px 48px;
+      text-align: center;
+      background: var(--cream);
+    }
+
+    .cta-strip h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 5vw, 62px);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .cta-strip h2 em {
+      font-style: italic;
+      color: var(--red);
+    }
+
+    .cta-strip p {
+      font-size: 16px;
+      color: var(--warm-gray);
+      max-width: 420px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    footer {
+      padding: 32px 48px;
+      background: var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    footer .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--cream);
+      letter-spacing: 0.08em;
+    }
+
+    footer .logo span {
+      color: var(--red);
+    }
+
+    footer p {
+      font-size: 12px;
+      color: #A89888;
+      letter-spacing: 0.04em;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-content > * {
+      animation: fadeUp 0.7s ease forwards;
+      opacity: 0;
+    }
+
+    .hero-eyebrow {
+      animation-delay: 0.1s;
+    }
+
+    h1 {
+      animation-delay: 0.2s;
+    }
+
+    .hero-sub {
+      animation-delay: 0.3s;
+    }
+
+    .trust-line {
+      animation-delay: 0.35s;
+    }
+
+    .hero-actions {
+      animation-delay: 0.45s;
+    }
+
+    .hero-image {
+      animation: fadeUp 0.9s ease 0.25s forwards;
+      opacity: 0;
+    }
+
+    @media (max-width: 960px) {
+      nav {
+        padding: 16px 24px;
+      }
+
+      .hero {
+        flex-direction: column;
+        padding: 100px 24px 60px;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero-content {
+        max-width: 100%;
+        text-align: center;
+      }
+
+      .hero-eyebrow {
+        justify-content: center;
+      }
+
+      .hero-sub,
+      .trust-line {
+        max-width: 100%;
+      }
+
+      .trust-line {
+        text-align: center;
+      }
+
+      .hero-actions {
+        justify-content: center;
+      }
+
+      .hero-image {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        width: 100%;
+        max-width: 380px;
+        margin-top: 44px;
+      }
+
+      .positioning,
+      .trust-strip,
+      .intent-section,
+      .how,
+      .pricing,
+      .cta-strip {
+        padding: 72px 24px;
+      }
+
+      .promise {
+        grid-template-columns: 1fr;
+        gap: 44px;
+        padding: 72px 24px;
+      }
+
+      .intent-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .steps {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .step {
+        border-bottom: 1px solid var(--light-gray);
+      }
+
+      .step:nth-child(2n) {
+        border-right: none;
+      }
+
+      .step:nth-last-child(-n+2) {
+        border-bottom: none;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .trust-strip {
+        gap: 20px;
+        padding: 18px 24px;
+      }
+
+      footer {
+        padding: 28px 24px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .intent-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        border-right: none;
+        border-bottom: 1px solid var(--light-gray);
+      }
+
+      .step:last-child {
+        border-bottom: none;
+      }
     }
   </style>
 </head>
-<body>
 
-  <div class="urgency-bar">🌸 <strong>Mother's Day:</strong> Orders placed today ship within 24 hours</div>
+<body>
 
   <nav>
     <a href="/" class="nav-logo">Heart<span>post</span></a>
-    <a href="/heartpost-checkout.html" class="nav-cta">Send a Mother's Day Letter →</a>
+    <a href="/heartpost-checkout.html" class="nav-cta">Send a Letter →</a>
   </nav>
 
   <section class="hero">
     <div class="hero-content">
-      <div class="hero-eyebrow">Mother's Day — Ships in 24hrs</div>
-      <h1>Send Mom a letter<br>she'll <em>never</em><br>throw away.</h1>
-      <p class="hero-sub">Printed on premium paper, sealed with real wax, mailed to her door. Written from your phone or in your own handwriting.</p>
+      <div class="hero-eyebrow">When it matters, send a Heartpost</div>
+
+      <h1>Say what you've<br>been <em>holding in.</em></h1>
+
+      <p class="hero-sub">
+        Write a letter from your phone or upload your handwriting.
+        We print it on premium paper, wax-seal it, and mail it to someone who matters.
+      </p>
+
+      <p class="trust-line">
+        Prepared within 24 hours <span>·</span> Private <span>·</span> Discreet packaging
+      </p>
+
       <div class="hero-actions">
-        <a href="/heartpost-checkout.html" class="btn-primary">Send a Mother's Day Letter →</a>
-        <a href="#how" class="btn-ghost">How it works</a>
+        <a href="/heartpost-checkout.html" class="btn-primary" onclick="setIntent('')">Send a Letter →</a>
+        <a href="#intent" class="btn-ghost">What do you need to say?</a>
       </div>
     </div>
+
     <div class="hero-image">
       <div class="letter-card">
         <div class="letter-to">To</div>
-        <div class="letter-name">Mom ♡</div>
-        <div class="letter-body">"I don't say it enough — but you are the reason I know how to love. Thank you for every quiet sacrifice. This letter is long overdue."</div>
+        <div class="letter-name">Someone who matters</div>
+
+        <div class="letter-body">
+          "There are things I never said out loud. I don’t know why — you always deserved to hear them. So I’m writing them down, because some words need to be held."
+        </div>
+
         <div class="wax-seal">H</div>
       </div>
     </div>
   </section>
 
-  <div class="trust-strip">
-    <div><span>✉️</span> Real mailed letters</div>
-    <div><span>🕯️</span> Real wax seals</div>
-    <div><span>📬</span> USPS delivery</div>
-    <div><span>✍️</span> Upload your handwriting</div>
+  <div class="positioning">
+    <h2>Texts get ignored. Calls get avoided.<br><em>Letters get kept.</em></h2>
+    <p>For the words that deserve more than a text.</p>
   </div>
+
+  <div class="trust-strip">
+    <div>✉️ Real mailed letters</div>
+    <div>🕯️ Hand-applied wax seal</div>
+    <div>📬 USPS delivery</div>
+    <div>✍️ Your handwriting or typed</div>
+    <div>🔒 Completely private</div>
+  </div>
+
+  <section class="intent-section" id="intent">
+    <div class="section-label">Start here</div>
+    <h2 class="section-title">What do you need to say?</h2>
+
+    <div class="intent-grid">
+      <a class="intent-card" href="/heartpost-checkout.html" onclick="setIntent('apology')">
+        <span class="intent-emoji">💔</span>
+        <h3>I need to say sorry</h3>
+        <p>An apology they'll actually feel — not just read.</p>
+      </a>
+
+      <a class="intent-card" href="/heartpost-checkout.html" onclick="setIntent('miss')">
+        <span class="intent-emoji">💭</span>
+        <h3>I miss someone</h3>
+        <p>Tell them they've been on your mind.</p>
+      </a>
+
+      <a class="intent-card" href="/heartpost-checkout.html" onclick="setIntent('love')">
+        <span class="intent-emoji">❤️</span>
+        <h3>I love you</h3>
+        <p>The three words that mean more in ink.</p>
+      </a>
+
+      <a class="intent-card" href="/heartpost-checkout.html" onclick="setIntent('birthday')">
+        <span class="intent-emoji">🎂</span>
+        <h3>It's their birthday</h3>
+        <p>A gift they'll keep long after the cake is gone.</p>
+      </a>
+
+      <a class="intent-card" href="/heartpost-checkout.html" onclick="setIntent('closure')">
+        <span class="intent-emoji">🕊️</span>
+        <h3>I need closure</h3>
+        <p>Say the things you never got to say.</p>
+      </a>
+
+      <a class="intent-card" href="/heartpost-checkout.html" onclick="setIntent('parent')">
+        <span class="intent-emoji">👵</span>
+        <h3>For a parent or grandparent</h3>
+        <p>They'll treasure this more than anything else you could give.</p>
+      </a>
+    </div>
+  </section>
 
   <section class="how" id="how">
     <div class="section-label">Process</div>
-    <h2 class="section-title">How it works.</h2>
+    <h2 class="section-title" style="margin-bottom:40px;">How it works.</h2>
+
     <div class="steps">
       <div class="step">
         <div class="step-num">01</div>
         <h3>Write your message</h3>
-        <p>Type from your phone or upload photos of your handwriting — we'll match your exact style.</p>
+        <p>Type from your phone or upload photos of your handwriting — we prepare it in your handwriting style.</p>
       </div>
+
       <div class="step">
         <div class="step-num">02</div>
         <h3>We prepare it</h3>
-        <p>Printed on luxury paper and sealed with real red wax. Every detail handled by us.</p>
+        <p>Printed on luxury paper and sealed with real red wax. Ready within 24 hours.</p>
       </div>
+
       <div class="step">
         <div class="step-num">03</div>
         <h3>We mail it</h3>
-        <p>Delivered directly to their mailbox via USPS in 2–5 business days.</p>
+        <p>Delivered via USPS in discreet packaging. No Heartpost branding on the envelope.</p>
       </div>
+
       <div class="step">
         <div class="step-num">04</div>
         <h3>They open it</h3>
-        <p>A real letter they can hold, re-read, and keep forever. Nothing else feels like this.</p>
+        <p>A real letter they can hold, re-read, and keep. Nothing else feels like this.</p>
       </div>
     </div>
   </section>
 
-  <section class="types" id="pricing">
+  <section class="pricing" id="pricing">
     <div class="section-label">Options</div>
-    <h2 class="section-title">Choose your style.</h2>
-    <div class="types-grid">
-      <div class="type-card">
-        <div class="type-icon">✍️</div>
-        <h3>Typed Letter</h3>
-        <p>You write the message, we format it beautifully on Heartpost letterhead and mail it with a wax seal.</p>
-        <div class="type-price">$7.99 <span>per letter</span></div>
+    <h2 class="section-title" style="margin-bottom:0;">Simple, honest pricing.</h2>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Classic Letter</h3>
+        <div class="price-amount"><sup>$</sup>9</div>
+
+        <p>Typed letter, premium paper, wax seal, mailed anywhere in the US.</p>
+
+        <ul>
+          <li>You type the letter</li>
+          <li>Premium cotton paper</li>
+          <li>Hand-applied wax seal</li>
+          <li>USPS First Class mail</li>
+        </ul>
+
+        <a href="/heartpost-checkout.html" class="price-cta" onclick="setIntent('')">Start Writing →</a>
       </div>
-      <div class="type-card featured">
-        <div class="type-icon">📸</div>
-        <h3>Handwriting Transfer</h3>
-        <p>Upload photos of your handwriting. We recreate your exact style so it looks like you wrote it yourself.</p>
-        <div class="type-price">$14.99 <span>per letter</span></div>
+
+      <div class="price-card featured">
+        <h3>Handwriting Letter</h3>
+        <div class="price-amount"><sup>$</sup>19</div>
+
+        <p>Upload photos of your handwriting. We prepare a more personal letter experience and mail it.</p>
+
+        <ul>
+          <li>Upload handwriting photos</li>
+          <li>Handwriting-style preparation</li>
+          <li>Premium cotton paper</li>
+          <li>Hand-applied wax seal</li>
+          <li>USPS First Class mail</li>
+        </ul>
+
+        <a href="/heartpost-checkout.html" class="price-cta" onclick="setIntent('')">Upload Handwriting →</a>
+      </div>
+
+      <div class="price-card">
+        <h3>Premium Letter</h3>
+        <div class="price-amount"><sup>$</sup>29</div>
+
+        <p>The full experience. Handwriting upload, our finest paper, tracking, and priority preparation.</p>
+
+        <ul>
+          <li>Upload handwriting photos</li>
+          <li>Our finest cotton paper</li>
+          <li>Hand-applied wax seal</li>
+          <li>USPS tracking included</li>
+          <li>Priority 24hr preparation</li>
+        </ul>
+
+        <a href="/heartpost-checkout.html" class="price-cta" onclick="setIntent('')">Go Premium →</a>
       </div>
     </div>
   </section>
 
   <section class="promise">
     <div>
-      <h2>Every letter is<br><em>a keepsake.</em></h2>
-      <p>We obsess over every detail — the paper weight, the fold, the seal — because whoever receives this deserves to feel it.</p>
+      <h2>Every letter is<br><em>completely private.</em></h2>
+
+      <p>
+        Your message is never shared. It is only handled for fulfillment.
+        Discreet packaging — no branding on the envelope.
+      </p>
     </div>
+
     <div class="promise-items">
       <div class="promise-item">
         <div class="promise-dot"></div>
-        <div><h4>Premium cotton paper</h4><p>The kind that feels like a letter worth saving.</p></div>
+        <div>
+          <h4>Your message is private</h4>
+          <p>Never shared. Handled only for printing, sealing, and mailing.</p>
+        </div>
       </div>
+
       <div class="promise-item">
         <div class="promise-dot"></div>
-        <div><h4>Hand-applied wax seal</h4><p>Each letter sealed personally before it ships.</p></div>
+        <div>
+          <h4>Prepared within 24 hours</h4>
+          <p>Most orders are prepared quickly and placed into the mail as soon as possible.</p>
+        </div>
       </div>
+
       <div class="promise-item">
         <div class="promise-dot"></div>
-        <div><h4>USPS First Class mail</h4><p>Tracked and delivered in 2–5 business days.</p></div>
+        <div>
+          <h4>Discreet packaging</h4>
+          <p>Plain envelope — no Heartpost branding on the outside.</p>
+        </div>
       </div>
+
       <div class="promise-item">
         <div class="promise-dot"></div>
-        <div><h4>Your handwriting, preserved</h4><p>AI-matched fonts recreate your exact writing style.</p></div>
+        <div>
+          <h4>Premium materials only</h4>
+          <p>Cotton paper and real wax — not printer paper and stickers.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="cta-strip">
-    <h2>Mom deserves more<br>than a <em>text.</em></h2>
-    <p>Order today and she'll have it in her hands for Mother's Day. Takes 3 minutes — means everything.</p>
-    <a href="/heartpost-checkout.html" class="btn-primary">Send a Mother's Day Letter →</a>
+    <h2>Someone needs to<br>hear from <em>you.</em></h2>
+    <p>It takes 3 minutes to write. It lasts a lifetime to receive.</p>
+    <a href="/heartpost-checkout.html" class="btn-primary" onclick="setIntent('')">Send a Letter →</a>
   </section>
 
   <footer>
     <div class="logo">Heart<span>post</span></div>
-    <p>© 2026 Heartpost. Premium letters, delivered.</p>
+    <p>© 2026 Heartpost · When it matters, send a Heartpost.</p>
   </footer>
+
+  <script>
+    function setIntent(intent) {
+      if (intent) {
+        localStorage.setItem('intent', intent);
+        localStorage.setItem('heartpost_intent', intent);
+      } else {
+        localStorage.removeItem('intent');
+        localStorage.removeItem('heartpost_intent');
+      }
+    }
+  </script>
 
 </body>
 </html>
