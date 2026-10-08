@@ -138,6 +138,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
 .addon input[type=checkbox]{width:16px;height:16px;accent-color:var(--wax);cursor:pointer;flex-shrink:0}
 .addon span{flex:1;font-size:1rem;color:rgba(26,18,8,0.9)}
 .addon em{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--sepia);font-weight:600;font-style:normal;flex-shrink:0}
+.shipnote{font-size:0.88rem;font-style:italic;color:rgba(26,18,8,0.75);margin:0 0 1.5rem}
 
 /* SUMMARY */
 .sumbox{background:var(--cream);border:1px solid var(--border);padding:1.4rem;margin-bottom:1.3rem;position:relative;overflow:hidden}
@@ -404,20 +405,15 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
   <div class="addons">
     <label class="addon">
       <input type="checkbox" id="ao1" onchange="recalc()">
-      <span>USPS tracking + delivery confirmation</span>
-      <em>+$1.00</em>
+      <span><span class="js-tracking-price">+$12</span> — USPS tracking number emailed when mailed</span>
     </label>
     <label class="addon">
       <input type="checkbox" id="ao2" onchange="recalc()">
       <span>Rush processing — same day if ordered by 2pm ET</span>
       <em>+$3.00</em>
     </label>
-    <label class="addon">
-      <input type="checkbox" id="ao3" onchange="recalc()">
-      <span>Handwriting transfer — we replicate your writing style</span>
-      <em>+$2.00</em>
-    </label>
   </div>
+  <p class="shipnote">Untracked letters ship by USPS First-Class Mail; we email you a photo when yours is mailed.</p>
 
   <button class="btn" onclick="go(4)">Continue → Review & Pay</button>
   <button class="bback" onclick="go(2)">← Back to Recipient</button>
@@ -435,7 +431,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
     <div class="sline"><span class="sl">To</span><span class="sv" id="s3">—</span></div>
     <div class="sline"><span class="sl">Address</span><span class="sv" id="s4">—</span></div>
     <div class="sline" id="s-pages" style="display:none"><span class="sl">Pages</span><span class="sv" id="s5">—</span></div>
-    <div class="sline" id="sr1" style="display:none"><span class="sl">Tracking</span><span class="sv">+$1.00</span></div>
+    <div class="sline" id="sr1" style="display:none"><span class="sl">Tracking</span><span class="sv js-tracking-price">+$12.00</span></div>
     <div class="sline" id="sr2" style="display:none"><span class="sl">Rush</span><span class="sv">+$3.00</span></div>
     <div class="sline" id="sr3" style="display:none"><span class="sl">Handwriting</span><span class="sv">+$2.00</span></div>
     <div class="stotalrow"><span class="sl">Total</span><span class="sv" id="stot">$24.99</span></div>
@@ -488,6 +484,13 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
 const STRIPE_KEY = 'pk_live_51TNcEAKGuVFefNHRosQm9plrItBCkRRhcTgr5WnASYC8x2Zb74e0Y5ByVhKDuuJxapkr72gF5tztjnMRY8TaZICU00IcasxkS1';
 const BACKEND    = 'https://heartpost-production.up.railway.app';
 
+// ── PRICES ──
+// Display only — the server (heartpost/server.js PRICING) decides the charge
+// and rejects an order if this total disagrees. Change both together.
+const TRACKING_PRICE    = 12;
+const RUSH_PRICE        = 3;
+const HANDWRITING_PRICE = 2; // added for "Upload my handwriting" letters
+
 // ── STATE ──
 let T = { id:'bundle', price:24.99, name:'Bundle — 5 Letters' };
 let P = { idx:0, name:'Ivory Laid — Scarlet Wax' };
@@ -524,6 +527,7 @@ function setMode(m) {
   document.getElementById('md-photo').style.display = m === 'photo' ? 'block' : 'none';
   document.getElementById('mt1').classList.toggle('on', m === 'type');
   document.getElementById('mt2').classList.toggle('on', m === 'photo');
+  recalc(); // handwriting letters carry the handwriting charge
 }
 
 // ── PHOTO MANAGEMENT ──
@@ -637,17 +641,22 @@ function pickPaper(idx, name) {
 // ── TOTAL ──
 function calcTotal() {
   let t = T.price;
-  if (document.getElementById('ao1').checked) t += 1;
-  if (document.getElementById('ao2').checked) t += 3;
-  if (document.getElementById('ao3').checked) t += 2;
-  return t;
+  if (document.getElementById('ao1').checked) t += TRACKING_PRICE;
+  if (document.getElementById('ao2').checked) t += RUSH_PRICE;
+  if (M === 'photo') t += HANDWRITING_PRICE;
+  return Math.round(t * 100) / 100;
 }
 function recalc() {
   document.getElementById('stot').textContent = '$' + calcTotal().toFixed(2);
   document.getElementById('sr1').style.display = document.getElementById('ao1').checked ? 'flex' : 'none';
   document.getElementById('sr2').style.display = document.getElementById('ao2').checked ? 'flex' : 'none';
-  document.getElementById('sr3').style.display = document.getElementById('ao3').checked ? 'flex' : 'none';
+  document.getElementById('sr3').style.display = M === 'photo' ? 'flex' : 'none';
 }
+
+// Fill every tracking price label from TRACKING_PRICE
+document.querySelectorAll('.js-tracking-price').forEach(el => {
+  el.textContent = '+$' + (el.closest('.sline') ? TRACKING_PRICE.toFixed(2) : TRACKING_PRICE);
+});
 
 // ── VALIDATION ──
 const ADDR_FIELDS = [
@@ -829,7 +838,8 @@ async function pay() {
     ].filter(Boolean).join(', ');
 
     const payload = {
-      amount:        calcTotal(),
+      amount:        calcTotal(),   // checked by the server, not trusted
+      tier:          T.id,
       recipientName: document.getElementById('rname').value,
       address:       addrLine,
       city:          cityStateZip,
