@@ -318,7 +318,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
 
   <div class="field">
     <label>Country</label>
-    <select id="country">
+    <select id="country" onchange="onCountryChange()">
       <option value="US">United States</option>
       <option value="CA">Canada</option>
       <option value="GB">United Kingdom</option>
@@ -331,6 +331,12 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
       <option value="DE">Germany</option>
       <option value="OTHER">Other country</option>
     </select>
+  </div>
+
+  <div class="field" id="f-country-other" style="display:none">
+    <label id="l-country-other">Country name *</label>
+    <input type="text" id="country-other" maxlength="60" placeholder="e.g. Portugal" oninput="clearErr('country-other')"/>
+    <span class="errmsg" id="e-country-other">Please enter the country</span>
   </div>
 
   <button class="btn" onclick="go(3)">Continue → Choose Package</button>
@@ -371,7 +377,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
       <div class="tdesc">Across an ocean.</div>
       <ul class="tfeats">
         <li>180+ countries</li>
-        <li>Airmail tracked</li>
+        <li>Airmail</li>
         <li>7–14 days</li>
       </ul>
     </div>
@@ -403,7 +409,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
 
   <span class="slabel">Add-ons (optional)</span>
   <div class="addons">
-    <label class="addon">
+    <label class="addon" id="addon-tracking">
       <input type="checkbox" id="ao1" onchange="recalc()">
       <span><span class="js-tracking-price">+$12</span> — USPS tracking number emailed when mailed</span>
     </label>
@@ -653,10 +659,30 @@ function recalc() {
   document.getElementById('sr3').style.display = M === 'photo' ? 'flex' : 'none';
 }
 
+// ── COUNTRY ──
+// USPS tracking (a Shippo label) is US-only, so the option is hidden and
+// cleared for any other country; the server rejects it too.
+function onCountryChange() {
+  const country = document.getElementById('country').value;
+  document.getElementById('f-country-other').style.display = country === 'OTHER' ? 'block' : 'none';
+  if (country !== 'OTHER') clearErr('country-other');
+  const isUS = country === 'US';
+  document.getElementById('addon-tracking').style.display = isUS ? '' : 'none';
+  if (!isUS) document.getElementById('ao1').checked = false;
+  recalc();
+}
+function countryName() {
+  const sel = document.getElementById('country');
+  return sel.value === 'OTHER'
+    ? document.getElementById('country-other').value.trim()
+    : sel.options[sel.selectedIndex].text;
+}
+
 // Fill every tracking price label from TRACKING_PRICE
 document.querySelectorAll('.js-tracking-price').forEach(el => {
   el.textContent = '+$' + (el.closest('.sline') ? TRACKING_PRICE.toFixed(2) : TRACKING_PRICE);
 });
+onCountryChange(); // browsers can restore a non-US selection on reload
 
 // ── VALIDATION ──
 const ADDR_FIELDS = [
@@ -695,6 +721,13 @@ function validateAddress() {
       if (!first) first = el;
       ok = false;
     }
+  }
+  // "Other country" needs the actual country name
+  const otherEl = document.getElementById('country-other');
+  if (document.getElementById('country').value === 'OTHER' && !otherEl.value.trim()) {
+    markErr('country-other', 'Please enter the country');
+    if (!first) first = otherEl;
+    ok = false;
   }
   if (!ok && first) first.focus();
   return ok;
@@ -762,7 +795,7 @@ function buildSummary() {
     document.getElementById('city').value,
     document.getElementById('state').value,
     document.getElementById('zip').value,
-    document.getElementById('country').options[document.getElementById('country').selectedIndex].text
+    countryName()
   ].filter(Boolean);
   document.getElementById('s4').textContent = addrParts.join(', ');
 
@@ -843,6 +876,8 @@ async function pay() {
       recipientName: document.getElementById('rname').value,
       address:       addrLine,
       city:          cityStateZip,
+      country:       document.getElementById('country').value,   // 'US', 'CA', … or 'OTHER'
+      countryName:   countryName(),
       senderName:    document.getElementById('sname').value,
       style:         P.name,
       letterType:    M === 'type' ? 'Typed' : 'Handwriting Transfer',
