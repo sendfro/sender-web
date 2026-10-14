@@ -94,7 +94,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
 .field label{display:block;font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(26,18,8,0.82);margin-bottom:0.35rem;font-weight:600;transition:color 0.2s}
 .field input,.field select{width:100%;background:rgba(255,255,255,0.6);border:1.5px solid var(--border);padding:0.72rem 0.9rem;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);outline:none;transition:border-color 0.15s,background 0.15s;-webkit-appearance:none;border-radius:0}
 .field input:focus,.field select:focus{border-color:var(--wax);background:#fff}
-.field input.err{border-color:var(--red)!important;background:var(--red-bg)!important}
+.field input.err,.field select.err{border-color:var(--red)!important;background:var(--red-bg)!important}
 .field input.err+.errmsg,.errmsg.show{display:block}
 .errmsg{display:none;font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--red);margin-top:0.25rem;letter-spacing:0.05em}
 .field label.err-label{color:var(--red)!important}
@@ -306,12 +306,77 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
     </div>
     <div class="field" id="f-state">
       <label id="l-state">State *</label>
-      <input type="text" id="state" placeholder="VT" oninput="clearErr('state')"/>
+      <!-- US: a dropdown (the server accepts the same codes — see US_STATES in heartpost server.js); elsewhere: free text -->
+      <select id="state" onchange="clearErr('state')">
+        <option value="">Choose…</option>
+        <option value="AL">Alabama</option>
+        <option value="AK">Alaska</option>
+        <option value="AZ">Arizona</option>
+        <option value="AR">Arkansas</option>
+        <option value="CA">California</option>
+        <option value="CO">Colorado</option>
+        <option value="CT">Connecticut</option>
+        <option value="DE">Delaware</option>
+        <option value="DC">District of Columbia</option>
+        <option value="FL">Florida</option>
+        <option value="GA">Georgia</option>
+        <option value="HI">Hawaii</option>
+        <option value="ID">Idaho</option>
+        <option value="IL">Illinois</option>
+        <option value="IN">Indiana</option>
+        <option value="IA">Iowa</option>
+        <option value="KS">Kansas</option>
+        <option value="KY">Kentucky</option>
+        <option value="LA">Louisiana</option>
+        <option value="ME">Maine</option>
+        <option value="MD">Maryland</option>
+        <option value="MA">Massachusetts</option>
+        <option value="MI">Michigan</option>
+        <option value="MN">Minnesota</option>
+        <option value="MS">Mississippi</option>
+        <option value="MO">Missouri</option>
+        <option value="MT">Montana</option>
+        <option value="NE">Nebraska</option>
+        <option value="NV">Nevada</option>
+        <option value="NH">New Hampshire</option>
+        <option value="NJ">New Jersey</option>
+        <option value="NM">New Mexico</option>
+        <option value="NY">New York</option>
+        <option value="NC">North Carolina</option>
+        <option value="ND">North Dakota</option>
+        <option value="OH">Ohio</option>
+        <option value="OK">Oklahoma</option>
+        <option value="OR">Oregon</option>
+        <option value="PA">Pennsylvania</option>
+        <option value="RI">Rhode Island</option>
+        <option value="SC">South Carolina</option>
+        <option value="SD">South Dakota</option>
+        <option value="TN">Tennessee</option>
+        <option value="TX">Texas</option>
+        <option value="UT">Utah</option>
+        <option value="VT">Vermont</option>
+        <option value="VA">Virginia</option>
+        <option value="WA">Washington</option>
+        <option value="WV">West Virginia</option>
+        <option value="WI">Wisconsin</option>
+        <option value="WY">Wyoming</option>
+        <optgroup label="Territories &amp; military">
+        <option value="AS">American Samoa</option>
+        <option value="GU">Guam</option>
+        <option value="MP">Northern Mariana Islands</option>
+        <option value="PR">Puerto Rico</option>
+        <option value="VI">U.S. Virgin Islands</option>
+        <option value="AA">Armed Forces Americas (AA)</option>
+        <option value="AE">Armed Forces Europe (AE)</option>
+        <option value="AP">Armed Forces Pacific (AP)</option>
+        </optgroup>
+      </select>
+      <input type="text" id="state-text" placeholder="Region" oninput="clearErr('state')" style="display:none"/>
       <span class="errmsg" id="e-state">State is required</span>
     </div>
     <div class="field" id="f-zip">
-      <label id="l-zip">ZIP / Postal Code *</label>
-      <input type="text" id="zip" placeholder="05401" oninput="clearErr('zip')"/>
+      <label id="l-zip">ZIP Code *</label>
+      <input type="text" id="zip" placeholder="05401" maxlength="10" inputmode="numeric" autocomplete="postal-code" oninput="clearErr('zip')"/>
       <span class="errmsg" id="e-zip">ZIP code is required</span>
     </div>
   </div>
@@ -667,6 +732,17 @@ function onCountryChange() {
   document.getElementById('f-country-other').style.display = country === 'OTHER' ? 'block' : 'none';
   if (country !== 'OTHER') clearErr('country-other');
   const isUS = country === 'US';
+  // US addresses pick a state from the list and need a ZIP; others type a region and postal code
+  document.getElementById('state').style.display      = isUS ? '' : 'none';
+  document.getElementById('state-text').style.display = isUS ? 'none' : '';
+  document.getElementById('l-state').textContent = isUS ? 'State *' : 'State / Region *';
+  document.getElementById('l-zip').textContent   = isUS ? 'ZIP Code *' : 'Postal Code *';
+  const zipEl = document.getElementById('zip');
+  zipEl.placeholder = isUS ? '05401' : '';
+  zipEl.maxLength   = isUS ? 10 : 20;
+  zipEl.inputMode   = isUS ? 'numeric' : 'text';
+  clearErr('state');
+  clearErr('zip');
   document.getElementById('addon-tracking').style.display = isUS ? '' : 'none';
   if (!isUS) document.getElementById('ao1').checked = false;
   recalc();
@@ -690,12 +766,17 @@ const ADDR_FIELDS = [
   { id: 'sname', label: 'Your name is required' },
   { id: 'addr',  label: 'Street address is required' },
   { id: 'city',  label: 'City is required' },
-  { id: 'state', label: 'State is required' },
-  { id: 'zip',   label: 'ZIP / postal code is required' },
 ];
+// Same rule as the server: 5 digits, or ZIP+4
+const US_ZIP = /^\d{5}(-\d{4})?$/;
+
+function isUS() { return document.getElementById('country').value === 'US'; }
+// The visible state control: the dropdown for US addresses, the text box otherwise
+function stateEl() { return document.getElementById(isUS() ? 'state' : 'state-text'); }
+function stateValue() { return stateEl().value.trim(); }
 
 function markErr(id, msg) {
-  const el  = document.getElementById(id);
+  const el  = id === 'state' ? stateEl() : document.getElementById(id);
   const lbl = document.getElementById('l-' + id);
   const err = document.getElementById('e-' + id);
   if (el)  el.classList.add('err');
@@ -707,6 +788,7 @@ function clearErr(id) {
   const el  = document.getElementById(id);
   const lbl = document.getElementById('l-' + id);
   const err = document.getElementById('e-' + id);
+  if (id === 'state') document.getElementById('state-text').classList.remove('err');
   if (el)  el.classList.remove('err');
   if (lbl) lbl.classList.remove('err-label');
   if (err) err.classList.remove('show');
@@ -721,6 +803,20 @@ function validateAddress() {
       if (!first) first = el;
       ok = false;
     }
+  }
+  if (!stateValue()) {
+    markErr('state', isUS() ? "Please choose the recipient's state" : 'State / region is required');
+    if (!first) first = stateEl();
+    ok = false;
+  }
+  const zipEl = document.getElementById('zip');
+  const zip   = zipEl.value.trim();
+  if (!zip || (isUS() && !US_ZIP.test(zip))) {
+    markErr('zip', !zip
+      ? (isUS() ? 'ZIP code is required' : 'Postal code is required')
+      : 'Enter a 5-digit ZIP (like 05401) or ZIP+4 (05401-1234)');
+    if (!first) first = zipEl;
+    ok = false;
   }
   // "Other country" needs the actual country name
   const otherEl = document.getElementById('country-other');
@@ -793,7 +889,7 @@ function buildSummary() {
     document.getElementById('addr').value,
     document.getElementById('addr2').value,
     document.getElementById('city').value,
-    document.getElementById('state').value,
+    stateValue(),
     document.getElementById('zip').value,
     countryName()
   ].filter(Boolean);
@@ -864,10 +960,11 @@ async function pay() {
       document.getElementById('addr2').value
     ].filter(Boolean).join(', ');
 
+    // Sent as "City, ST, ZIP"; the server re-checks a US state and ZIP
     const cityStateZip = [
-      document.getElementById('city').value,
-      document.getElementById('state').value,
-      document.getElementById('zip').value
+      document.getElementById('city').value.trim(),
+      stateValue(),
+      document.getElementById('zip').value.trim()
     ].filter(Boolean).join(', ');
 
     const payload = {
@@ -900,7 +997,9 @@ async function pay() {
 
     if (!res.ok) {
       const e = await res.json();
-      throw new Error(e.error || 'Server error — please try again');
+      const err = new Error(e.error || 'Server error — please try again');
+      err.field = e.field; // set when the server rejected part of the address
+      throw err;
     }
 
     const { clientSecret } = await res.json();
@@ -928,6 +1027,11 @@ async function pay() {
 
   } catch (err) {
     document.getElementById('cerr').textContent = err.message || 'Payment failed. Please try again.';
+    // An address problem: go back to the address step and point at the field
+    if (['city', 'state', 'zip'].includes(err.field)) {
+      go(2);
+      markErr(err.field, err.message);
+    }
     btn.disabled = false;
     btn.textContent = 'Seal & Send This Letter ✉';
     document.getElementById('ov').classList.remove('on');
