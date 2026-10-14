@@ -99,6 +99,9 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
 .errmsg{display:none;font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--red);margin-top:0.25rem;letter-spacing:0.05em}
 .field label.err-label{color:var(--red)!important}
 .frow2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.page-est{font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.04em;color:var(--sepia);text-align:right;margin-top:0.45rem;min-height:1em}
+.page-est.over{color:var(--red);font-weight:600}
+.page-note{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.04em;color:rgba(26,18,8,0.55);text-align:right;margin-top:0.25rem}
 .frow3{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:1rem}
 @media(max-width:560px){.frow2,.frow3{grid-template-columns:1fr}}
 
@@ -214,8 +217,10 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
   <!-- Type mode -->
   <div id="md-type">
     <div class="letter-paper">
-      <textarea class="letter-lines" id="ltxt" placeholder="Dear ___,&#10;&#10;I've been meaning to write for so long now...&#10;&#10;With love,"></textarea>
+      <textarea class="letter-lines" id="ltxt" oninput="onLetterInput()" placeholder="Dear ___,&#10;&#10;I've been meaning to write for so long now...&#10;&#10;With love,"></textarea>
     </div>
+    <div class="page-est" id="page-est" aria-live="polite"></div>
+    <p class="page-note">Up to 2 pages included · each extra page <span class="js-page-price">+$1.50</span> · typed letters up to 10 pages</p>
   </div>
 
   <!-- Photo mode -->
@@ -266,7 +271,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
     </div>
   </div>
 
-  <button class="btn" onclick="go(2)">Continue → Who Is This For?</button>
+  <button class="btn" onclick="continueFromLetter()">Continue → Who Is This For?</button>
 </div>
 
 <!-- ===== STEP 2: RECIPIENT ===== -->
@@ -448,6 +453,8 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
     </div>
   </div>
 
+  <p class="page-note" style="text-align:left;margin:-0.6rem 0 1.4rem">Every letter includes up to 2 pages; each extra page is <span class="js-page-price">+$1.50</span>.</p>
+
   <span class="slabel">Paper & Wax Seal Style</span>
   <div class="papers">
     <div class="paper sel" id="p0" onclick="pickPaper(0,'Ivory Laid — Scarlet Wax')">
@@ -502,6 +509,7 @@ p.ssub{font-size:0.92rem;color:rgba(26,18,8,0.85);margin-bottom:2rem;font-style:
     <div class="sline"><span class="sl">To</span><span class="sv" id="s3">—</span></div>
     <div class="sline"><span class="sl">Address</span><span class="sv" id="s4">—</span></div>
     <div class="sline" id="s-pages" style="display:none"><span class="sl">Pages</span><span class="sv" id="s5">—</span></div>
+    <div class="sline" id="sr4" style="display:none"><span class="sl">Extra pages</span><span class="sv" id="s-extra">—</span></div>
     <div class="sline" id="sr1" style="display:none"><span class="sl">Tracking</span><span class="sv js-tracking-price">+$12.00</span></div>
     <div class="sline" id="sr2" style="display:none"><span class="sl">Rush</span><span class="sv">+$3.00</span></div>
     <div class="sline" id="sr3" style="display:none"><span class="sl">Handwriting</span><span class="sv">+$2.00</span></div>
@@ -561,6 +569,8 @@ const BACKEND    = 'https://heartpost-production.up.railway.app';
 const TRACKING_PRICE    = 12;
 const RUSH_PRICE        = 3;
 const HANDWRITING_PRICE = 2; // added for "Upload my handwriting" letters
+const EXTRA_PAGE_PRICE  = 1.5; // each page past INCLUDED_PAGES (server: EXTRA_PAGE_PRICE)
+const INCLUDED_PAGES    = 2;
 
 // ── STATE ──
 let T = { id:'bundle', price:24.99, name:'Bundle — 5 Letters' };
@@ -642,11 +652,15 @@ function renderPhotoGrid() {
 
   if (!photoFiles.length) {
     wrap.style.display = 'none';
+    recalc();
     return;
   }
 
   wrap.style.display = 'block';
-  count.textContent  = photoFiles.length + ' page' + (photoFiles.length > 1 ? 's' : '') + ' selected';
+  const extra = Math.max(0, photoFiles.length - INCLUDED_PAGES);
+  count.textContent  = photoFiles.length + ' page' + (photoFiles.length > 1 ? 's' : '') + ' selected'
+    + (extra ? ' · ' + extra + ' extra page' + (extra > 1 ? 's' : '') + ' +$' + (extra * EXTRA_PAGE_PRICE).toFixed(2) : '');
+  recalc();
 
   grid.innerHTML = '';
   photoFiles.forEach((file, i) => {
@@ -709,9 +723,80 @@ function pickPaper(idx, name) {
   P = { idx, name };
 }
 
+// ── PAGES ──
+// The base price covers INCLUDED_PAGES pages. A typed letter's page count
+// comes from the server, which lays the text out exactly like the printed
+// letter; it's asked (debounced) as the customer types. Handwriting letters
+// are one page per photo.
+let Q = { text: '', pages: 0, extraPages: 0, error: '', failed: false };
+let quoteTimer = null;
+let quoteSeq   = 0;
+
+function pagesText(n) { return n + ' page' + (n === 1 ? '' : 's'); }
+
+function extraPages() {
+  return M === 'photo' ? Math.max(0, photoFiles.length - INCLUDED_PAGES) : Q.extraPages;
+}
+
+function onLetterInput() {
+  document.getElementById('ltxt').style.borderColor = '';
+  clearTimeout(quoteTimer);
+  quoteTimer = setTimeout(refreshQuote, 600);
+}
+
+// Ask the server for the current text's page count (skipped if unchanged)
+async function refreshQuote() {
+  clearTimeout(quoteTimer);
+  const text = document.getElementById('ltxt').value;
+  if (!text.trim()) {
+    Q = { text, pages: 0, extraPages: 0, error: '', failed: false };
+  } else if (text !== Q.text || Q.failed) {
+    const seq = ++quoteSeq;
+    try {
+      const res  = await fetch(BACKEND + '/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier: T.id, letterType: 'Typed', letterBody: text }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'quote failed');
+      if (seq !== quoteSeq) return; // the customer kept typing; a newer answer is coming
+      Q = { text, pages: data.pages, extraPages: Math.max(0, data.extraPages || 0), error: data.error || '', failed: false };
+    } catch (e) {
+      if (seq !== quoteSeq) return;
+      Q = { ...Q, failed: true };
+    }
+  }
+  recalc();
+}
+
+function renderEstimate() {
+  const el = document.getElementById('page-est');
+  el.classList.toggle('over', !!Q.error);
+  if (M !== 'type' || !document.getElementById('ltxt').value.trim()) { el.textContent = ''; return; }
+  if (Q.failed) { el.textContent = 'Page count unavailable right now — the price is confirmed at checkout'; return; }
+  if (Q.error) { el.textContent = '≈ ' + pagesText(Q.pages) + ' · ' + Q.error; return; }
+  el.textContent = '≈ ' + pagesText(Q.pages) + ' · $' + calcTotal().toFixed(2)
+    + (Q.extraPages ? ' (incl. ' + Q.extraPages + ' extra page' + (Q.extraPages > 1 ? 's' : '') + ')' : '');
+}
+
+// Step 1 → 2: make sure the page count is for the text as it is now
+async function continueFromLetter() {
+  if (M === 'type' && document.getElementById('ltxt').value.trim()) {
+    await refreshQuote();
+    if (Q.error) {
+      document.getElementById('ltxt').style.borderColor = 'var(--red)';
+      document.getElementById('page-est').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+  }
+  go(2);
+}
+
 // ── TOTAL ──
 function calcTotal() {
   let t = T.price;
+  t += extraPages() * EXTRA_PAGE_PRICE;
   if (document.getElementById('ao1').checked) t += TRACKING_PRICE;
   if (document.getElementById('ao2').checked) t += RUSH_PRICE;
   if (M === 'photo') t += HANDWRITING_PRICE;
@@ -722,6 +807,10 @@ function recalc() {
   document.getElementById('sr1').style.display = document.getElementById('ao1').checked ? 'flex' : 'none';
   document.getElementById('sr2').style.display = document.getElementById('ao2').checked ? 'flex' : 'none';
   document.getElementById('sr3').style.display = M === 'photo' ? 'flex' : 'none';
+  const extra = extraPages();
+  document.getElementById('sr4').style.display = extra ? 'flex' : 'none';
+  document.getElementById('s-extra').textContent = extra + ' × $' + EXTRA_PAGE_PRICE.toFixed(2) + ' = +$' + (extra * EXTRA_PAGE_PRICE).toFixed(2);
+  renderEstimate();
 }
 
 // ── COUNTRY ──
@@ -753,6 +842,9 @@ function countryName() {
     ? document.getElementById('country-other').value.trim()
     : sel.options[sel.selectedIndex].text;
 }
+
+// Fill every per-page price label from EXTRA_PAGE_PRICE
+document.querySelectorAll('.js-page-price').forEach(el => { el.textContent = '+$' + EXTRA_PAGE_PRICE.toFixed(2); });
 
 // Fill every tracking price label from TRACKING_PRICE
 document.querySelectorAll('.js-tracking-price').forEach(el => {
@@ -901,6 +993,9 @@ function buildSummary() {
     pagesRow.style.display = 'flex';
     document.getElementById('s5').textContent =
       photoFiles.length + ' handwritten page' + (photoFiles.length > 1 ? 's' : '');
+  } else if (M === 'type' && Q.pages) {
+    pagesRow.style.display = 'flex';
+    document.getElementById('s5').textContent = '≈ ' + pagesText(Q.pages);
   } else {
     pagesRow.style.display = 'none';
   }
@@ -953,6 +1048,12 @@ async function pay() {
     }
 
     document.getElementById('ov-msg').textContent = 'Sealing your letter...';
+
+    // Price the text exactly as it is now, so the total matches the server's
+    if (M === 'type') {
+      await refreshQuote();
+      if (Q.error) throw Object.assign(new Error(Q.error), { field: 'letter' });
+    }
 
     // ② Build payload
     const addrLine = [
@@ -1031,6 +1132,12 @@ async function pay() {
     if (['city', 'state', 'zip'].includes(err.field)) {
       go(2);
       markErr(err.field, err.message);
+    }
+    // Too long to print: back to the letter, where the page count shows why
+    if (err.field === 'letter') {
+      go(1);
+      document.getElementById('ltxt').style.borderColor = 'var(--red)';
+      refreshQuote();
     }
     btn.disabled = false;
     btn.textContent = 'Seal & Send This Letter ✉';
