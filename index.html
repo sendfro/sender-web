@@ -318,14 +318,22 @@
       margin-left: 14px;
     }
 
-    /* Optional photo: /images/santa-letter.jpg shows (onload unhides it) as a
-       third column; without the file the card stays two columns */
+    /* The picture column: the illustration (images/santa-letter.svg), or a
+       photo with rounded corners and a soft shadow. Without it the card
+       is two columns. */
     .xmas-photo {
       width: 100%;
+      height: auto;
       max-width: 280px;
       justify-self: end;
       border-radius: 12px;
       box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+    }
+
+    /* The illustration draws its own shadow and has no frame */
+    .xmas-photo[src$=".svg"] {
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .xmas-card:has(.xmas-photo:not([hidden])) {
@@ -1227,7 +1235,10 @@
         <a href="/christmas" class="xmas-tile"><b>Santa Sibling Bundle</b><span class="price"><small>from</small>$36.99<span class="go" aria-hidden="true">→</span></span></a>
         <a href="/christmas" class="xmas-tile"><b>Christmas Letter</b><span class="price">$12.99<span class="go" aria-hidden="true">→</span></span></a>
       </div>
-      <img class="xmas-photo" src="/images/santa-letter.jpg" alt="A Letter from Santa on Holiday cotton paper, sealed in red wax" hidden onload="this.hidden = false">
+      <!-- The illustration. A static page can't check for a photo without
+           requesting it (a 404 until it exists), so to use a photo, upload
+           images/santa-letter.jpg and change this src to it. -->
+      <img class="xmas-photo" src="/images/santa-letter.svg" alt="A cream envelope sealed with red wax, addressed from Santa Claus, North Pole." width="560" height="640">
     </div>
   </section>
 

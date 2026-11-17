@@ -137,12 +137,23 @@ test('homepage feature: wording, prices and links', () => {
     assert.doesNotMatch(block, /hand-?written|handwriting/i);
     for (const [, href] of block.matchAll(/href="([^"]+)"/g)) assert.equal(href, '/christmas');
   }
-  // The photo stays hidden unless /images/santa-letter.jpg loads
-  assert.match(feature, /<img class="xmas-photo" src="\/images\/santa-letter\.jpg" alt="[^"]+" hidden onload="this\.hidden = false">/);
+  // The illustration, never a request for a photo that may not exist
+  assert.match(feature, /<img class="xmas-photo" src="\/images\/santa-letter\.svg" alt="A cream envelope sealed with red wax, addressed from Santa Claus, North Pole\." width="560" height="640">/);
+  assert.doesNotMatch(feature.replace(/<!--[\s\S]*?-->/g, ''), /santa-letter\.jpg/);
   // Only in season does the hero below the card lose its full-screen height
   assert.match(read('index.html'), /\.xmas-season \.hero \{\s*min-height: auto;/);
   // Snow stops for people who ask for less motion
   assert.match(read('index.html'), /@media \(prefers-reduced-motion: reduce\) \{\s*\.xmas-card::before \{ animation: none; \}/);
+});
+
+test('santa-letter.svg: original, self-contained, under 20 KB, in our colors', () => {
+  const svg = read('images/santa-letter.svg');
+  assert.ok(Buffer.byteLength(svg) < 20 * 1024, `${Buffer.byteLength(svg)} bytes`);
+  assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 560 640"/);
+  for (const text of ['Santa Claus · North Pole', 'Dear Emma,']) assert.ok(svg.includes(`>${text}</text>`), text);
+  for (const color of ['#faf7f2', '#9b1c23', '#1f3d34', '#bd9b68']) assert.ok(svg.includes(color), color);
+  // Nothing loaded from elsewhere: no images, links, scripts or remote fonts
+  assert.doesNotMatch(svg, /<image|<script|href=|url\((?!#)|@import/);
 });
 
 test('countdown to Dec 15 (New York time)', () => {
