@@ -1,0 +1,8 @@
+{
+  "name": "sender-web",
+  "private": true,
+  "description": "Heartpost static site. No dependencies; `npm test` checks the pages.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

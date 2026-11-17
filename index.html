@@ -81,6 +81,54 @@
       background: var(--red);
     }
 
+    /* Christmas Collection: shown in season only (christmas.js, [data-xmas]) */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .nav-xmas {
+      color: #1f4d3a;
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+    }
+
+    .nav-xmas:hover {
+      color: var(--red);
+    }
+
+    .xmas-strip {
+      display: block;
+      background: #1f4d3a;
+      color: var(--cream);
+      text-align: center;
+      text-decoration: none;
+      padding: 22px 24px;
+      border-top: 3px solid var(--gold);
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .xmas-strip strong {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 24px;
+      display: block;
+    }
+
+    .xmas-strip span {
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      opacity: 0.9;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     .hero {
       min-height: 100vh;
       display: flex;
@@ -835,13 +883,17 @@
       }
     }
   </style>
+  <script src="/christmas.js" defer></script>
 </head>
 
 <body>
 
   <nav>
     <a href="/" class="nav-logo">Heart<span>post</span></a>
-    <a href="/heartpost-checkout.html" class="nav-cta">Send a Letter →</a>
+    <div class="nav-links">
+      <a href="/christmas" class="nav-xmas" data-xmas hidden>Christmas</a>
+      <a href="/heartpost-checkout.html" class="nav-cta">Send a Letter →</a>
+    </div>
   </nav>
 
   <section class="hero">
@@ -891,6 +943,11 @@
     <div>✍️ Your handwriting or typed</div>
     <div>🔒 Completely private</div>
   </div>
+
+  <a href="/christmas" class="xmas-strip" data-xmas hidden>
+    <strong>The Christmas Collection: Letters from Santa from $19.99 →</strong>
+    <span>Printed on cotton paper, sealed with real wax, mailed by hand · Order by December 15 for Christmas delivery (US)</span>
+  </a>
 
   <section class="intent-section" id="intent">
     <div class="section-label">Start here</div>

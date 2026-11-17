@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Heartpost — The Christmas Collection</title>
+<meta name="description" content="Letters from Santa and Christmas letters, printed on cotton paper, sealed with real wax and mailed by hand. Order by December 15 for Christmas delivery in the US."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Tinos and Arimo are the fonts the letters are printed in: the preview is the print -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Tinos:ital,wght@0,400;0,700;1,400&family=Arimo:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://js.stripe.com/v3/"></script>
+<script src="/christmas.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1f4d3a;--green-deep:#163829;--wine:#922b21;--wax:#c0392b;
+  --cream:#faf6ed;--parchment:#f5efe2;--gold:#d4a017;--ink:#1a1208;
+  --border:rgba(139,105,20,0.25);
+}
+body{background:var(--parchment);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.6}
+a{color:var(--wine)}
+[hidden]{display:none!important}
+
+.banner{background:var(--wine);color:var(--cream);text-align:center;font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.06em;padding:.6rem 1rem}
+nav{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;max-width:1080px;margin:0 auto}
+.logo{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;text-decoration:none;color:var(--ink)}
+.logo span{color:var(--wax)}
+nav .back{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+
+.hero{background:var(--green);color:var(--cream);text-align:center;padding:4rem 1.5rem 3.5rem;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--wine),var(--gold),var(--wine))}
+.eyebrow{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.hero h1{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;max-width:760px;margin:0 auto 1rem}
+.hero p{font-size:1.2rem;max-width:620px;margin:0 auto;color:rgba(250,246,237,.9)}
+
+main{max-width:1080px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+h2{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;font-size:1.7rem;margin:0 0 .4rem}
+.sub{font-style:italic;color:rgba(26,18,8,.8);margin-bottom:1.6rem}
+
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
+@media(max-width:800px){.products{grid-template-columns:1fr}}
+.product{background:var(--cream);border:2px solid var(--border);padding:1.5rem;cursor:pointer;text-align:left;font:inherit;color:inherit;position:relative;transition:border-color .15s;display:flex;flex-direction:column;justify-content:flex-start}
+.product:hover{border-color:var(--gold)}
+.product.sel{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,77,58,.12)}
+.product .tag{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:500}
+.product h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin:.3rem 0 .5rem}
+.price{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--wine);line-height:1.1}
+.price small{font-size:.85rem;font-weight:400;color:rgba(26,18,8,.7);font-family:'Cormorant Garamond',serif}
+.product ul{list-style:none;margin-top:.8rem;font-size:.95rem}
+.product li::before{content:'✦ ';color:var(--gold)}
+.addons-note{font-size:.95rem;color:rgba(26,18,8,.8);margin-bottom:2.5rem}
+
+.card{background:var(--cream);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.2rem;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--gold))}
+.card h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:.8rem}
+label.f{display:block;font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(26,18,8,.75);margin:.9rem 0 .3rem}
+input[type=text],input[type=email],select,textarea{width:100%;font:inherit;font-size:1rem;padding:.6rem .7rem;border:1px solid var(--border);background:#fff;color:var(--ink)}
+input.err,select.err,textarea.err{border-color:var(--wax)}
+.e{color:var(--wax);font-size:.9rem;margin-top:.2rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.row3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:.8rem}
+@media(max-width:600px){.row2,.row3{grid-template-columns:1fr}}
+.hint{font-size:.92rem;font-style:italic;color:rgba(26,18,8,.75)}
+.btn{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;background:var(--green);color:var(--cream);border:none;padding:.85rem 1.3rem;cursor:pointer;margin-top:1rem}
+.btn:hover{background:var(--green-deep)}
+.btn.pay{background:var(--wine);width:100%;padding:1.05rem}
+.btn.pay:disabled{opacity:.6;cursor:default}
+.kids-row{display:flex;gap:1.5rem;margin:.4rem 0 1rem}
+.kids-row label{display:flex;gap:.4rem;align-items:center;cursor:pointer}
+
+/* The letter preview: Tinos italic at the print's proportions (13pt on a
+   468pt line, 20.3pt per line), so it wraps the way the paper will */
+.paper{background:#fffdf8;border:1px solid var(--border);margin-top:1rem;padding:1.4rem 1.6rem;box-shadow:0 2px 10px rgba(26,18,8,.06)}
+.paper .head{border-top:3px solid var(--wax);padding-top:.5rem;margin-bottom:.8rem}
+.paper .head b{font-family:Tinos,serif;font-style:italic;font-weight:400;font-size:1.35rem;color:var(--wax);display:block}
+.paper .head span{font-family:Tinos,serif;font-size:.7rem;color:#8b6914}
+.paper textarea{font-family:Tinos,serif;font-style:italic;font-size:1rem;line-height:1.56;border:none;background:transparent;max-width:36em;min-height:22em;padding:0;resize:vertical}
+.paper textarea:focus{outline:1px dashed var(--border)}
+.pages{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.06em;color:var(--green);margin-top:.5rem}
+.pages.bad{color:var(--wax)}
+
+.addon{display:flex;gap:.6rem;align-items:flex-start;margin:.5rem 0;cursor:pointer}
+.addon input{margin-top:.35rem;accent-color:var(--green)}
+.late{background:rgba(146,43,33,.06);border:1px solid rgba(146,43,33,.35);padding:.8rem 1rem;margin-top:1rem}
+.sline{display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px dashed var(--border)}
+.stotal{display:flex;justify-content:space-between;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin-top:.6rem}
+#card-element{background:#fff;border:1px solid var(--border);padding:.8rem;margin-top:1rem}
+#pay-err{color:var(--wax);min-height:1.4em;margin-top:.5rem}
+
+.done{text-align:center;padding:3rem 1rem}
+.done .seal{width:76px;height:76px;border-radius:50%;background:var(--wax);color:var(--cream);font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1.4rem}
+footer{text-align:center;font-size:.85rem;color:rgba(26,18,8,.65);padding:2rem 1rem 3rem}
+</style>
+</head>
+<body>
+<!-- Hidden until christmas.js checks the season (after the last day it sends
+     visitors to the homepage instead) -->
+<div id="xmas" hidden>
+<div class="banner" id="banner">Order by December 15 for Christmas delivery (US).</div>
+<nav>
+  <a href="/" class="logo">Heart<span>post</span></a>
+  <a href="/" class="back">← Home</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">The Christmas Collection</div>
+  <h1>Some things deserve more than a text.</h1>
+  <p>Letters printed on cotton paper, sealed with real wax and mailed by hand, in time for Christmas.</p>
+</header>
+
+<main>
+  <section id="products">
+    <h2>Choose a letter</h2>
+    <p class="sub">Every Christmas letter is printed on our Holiday cotton paper, sealed with real wax and mailed by hand to a US address.</p>
+    <div class="products">
+      <button type="button" class="product" data-product="santa">
+        <div class="tag">For one child</div>
+        <h3>Letter from Santa</h3>
+        <div class="price">$19<small>.99</small></div>
+        <ul>
+          <li>A warm letter from Santa, made from what they did great this year</li>
+          <li>You read and edit every word before it's printed</li>
+          <li>Holiday paper, Scarlet wax seal</li>
+          <li>Envelope from "Santa Claus · North Pole"</li>
+        </ul>
+      </button>
+      <button type="button" class="product" data-product="santa_bundle" data-kids="3">
+        <div class="tag">For siblings</div>
+        <h3>Santa Sibling Bundle</h3>
+        <div class="price">$49<small>.99 for 3 · $36.99 for 2</small></div>
+        <ul>
+          <li>A letter from Santa for each child, to the same address</li>
+          <li>Each child's own name, achievements and wish</li>
+          <li>One envelope each, Scarlet wax seal</li>
+          <li>One checkout</li>
+        </ul>
+      </button>
+      <button type="button" class="product" data-product="christmas">
+        <div class="tag">From you</div>
+        <h3>Christmas Letter</h3>
+        <div class="price">$12<small>.99</small></div>
+        <ul>
+          <li>Your own letter to someone you love</li>
+          <li>Holiday paper with a Scarlet, Gold or Midnight wax seal</li>
+          <li>Up to 2 pages included, then +$1.50 a page</li>
+        </ul>
+      </button>
+    </div>
+    <p class="addons-note">Add-ons for any Christmas letter: Holiday rush +$5 (moved to the front of the queue) · USPS tracking +$12 · US addresses only.</p>
+  </section>
+
+  <section id="order" hidden>
+    <!-- Santa letters -->
+    <div id="santa-form">
+      <div class="card">
+        <h3>About the children</h3>
+        <div class="kids-row" id="kids-row" hidden>
+          <label><input type="radio" name="kids" id="kids-2"> 2 children · $36.99</label>
+          <label><input type="radio" name="kids" id="kids-3"> 3 children · $49.99</label>
+        </div>
+        <p class="hint">We keep only each child's first name and the letter you approve. Everything else you type here stays in your browser.</p>
+        <label class="f" for="signoff">Santa's sign-off</label>
+        <input type="text" id="signoff" maxlength="120"/>
+      </div>
+      <div class="card kid" hidden>
+        <h3>Child 1</h3>
+        <label class="f" for="child-0">Child's first name *</label>
+        <input type="text" id="child-0" maxlength="30" autocomplete="off" placeholder="Emma"/>
+        <div class="e" id="e-child-0" hidden></div>
+        <label class="f" for="thing-0-0">What they did great this year: "This year you…" (2 or 3) *</label>
+        <input type="text" id="thing-0-0" maxlength="120" placeholder="learned to ride your bike"/>
+        <div class="e" id="e-thing-0-0" hidden></div>
+        <input type="text" id="thing-0-1" maxlength="120" placeholder="helped Grandma bake cookies" style="margin-top:.5rem"/>
+        <input type="text" id="thing-0-2" maxlength="120" placeholder="were brave at the dentist (optional)" style="margin-top:.5rem"/>
+        <label class="f" for="wish-0">One wish (optional)</label>
+        <input type="text" id="wish-0" maxlength="120" placeholder="a red bicycle"/>
+        <button type="button" class="btn" id="preview-0">Preview letter</button>
+        <div class="paper" id="paper-0" hidden>
+          <div class="head"><b>From the desk of Santa Claus</b><span>North Pole</span></div>
+          <textarea id="letter-0" aria-label="Santa's letter to child 1"></textarea>
+          <div class="e" id="e-letter-0" hidden></div>
+          <p class="hint">Change anything you like: it's printed exactly as it reads here, in this font.</p>
+        </div>
+        <div class="pages" id="pages-0"></div>
+      </div>
+      <div class="card kid" hidden>
+        <h3>Child 2</h3>
+        <label class="f" for="child-1">Child's first name *</label>
+        <input type="text" id="child-1" maxlength="30" autocomplete="off" placeholder="Liam"/>
+        <div class="e" id="e-child-1" hidden></div>
+        <label class="f" for="thing-1-0">What they did great this year: "This year you…" (2 or 3) *</label>
+        <input type="text" id="thing-1-0" maxlength="120" placeholder="read your first chapter book"/>
+        <div class="e" id="e-thing-1-0" hidden></div>
+        <input type="text" id="thing-1-1" maxlength="120" placeholder="shared your toys with your sister" style="margin-top:.5rem"/>
+        <input type="text" id="thing-1-2" maxlength="120" placeholder="kept your room tidy (optional)" style="margin-top:.5rem"/>
+        <label class="f" for="wish-1">One wish (optional)</label>
+        <input type="text" id="wish-1" maxlength="120" placeholder="a telescope"/>
+        <button type="button" class="btn" id="preview-1">Preview letter</button>
+        <div class="paper" id="paper-1" hidden>
+          <div class="head"><b>From the desk of Santa Claus</b><span>North Pole</span></div>
+          <textarea id="letter-1" aria-label="Santa's letter to child 2"></textarea>
+          <div class="e" id="e-letter-1" hidden></div>
+          <p class="hint">Change anything you like: it's printed exactly as it reads here, in this font.</p>
+        </div>
+        <div class="pages" id="pages-1"></div>
+      </div>
+      <div class="card kid" hidden>
+        <h3>Child 3</h3>
+        <label class="f" for="child-2">Child's first name *</label>
+        <input type="text" id="child-2" maxlength="30" autocomplete="off" placeholder="Noah"/>
+        <div class="e" id="e-child-2" hidden></div>
+        <label class="f" for="thing-2-0">What they did great this year: "This year you…" (2 or 3) *</label>
+        <input type="text" id="thing-2-0" maxlength="120" placeholder="made a new friend at school"/>
+        <div class="e" id="e-thing-2-0" hidden></div>
+        <input type="text" id="thing-2-1" maxlength="120" placeholder="fed the cat every morning" style="margin-top:.5rem"/>
+        <input type="text" id="thing-2-2" maxlength="120" placeholder="tried broccoli (optional)" style="margin-top:.5rem"/>
+        <label class="f" for="wish-2">One wish (optional)</label>
+        <input type="text" id="wish-2" maxlength="120" placeholder="a toy train"/>
+        <button type="button" class="btn" id="preview-2">Preview letter</button>
+        <div class="paper" id="paper-2" hidden>
+          <div class="head"><b>From the desk of Santa Claus</b><span>North Pole</span></div>
+          <textarea id="letter-2" aria-label="Santa's letter to child 3"></textarea>
+          <div class="e" id="e-letter-2" hidden></div>
+          <p class="hint">Change anything you like: it's printed exactly as it reads here, in this font.</p>
+        </div>
+        <div class="pages" id="pages-2"></div>
+      </div>
+    </div>
+
+    <!-- Christmas Letter -->
+    <div id="christmas-form" hidden>
+      <div class="card">
+        <h3>Your Christmas letter</h3>
+        <div class="row2">
+          <div><label class="f" for="xmas-to">To (recipient's name) *</label><input type="text" id="xmas-to" maxlength="80" placeholder="Grandma Rose"/><div class="e" id="e-xmas-to" hidden></div></div>
+          <div><label class="f" for="xmas-from">From (your name)</label><input type="text" id="xmas-from" maxlength="80" placeholder="Sam"/></div>
+        </div>
+        <label class="f" for="xmas-wax">Wax seal</label>
+        <select id="xmas-wax">
+          <option value="Scarlet">Scarlet</option>
+          <option value="Gold">Gold</option>
+          <option value="Midnight">Midnight</option>
+        </select>
+        <div class="paper">
+          <div class="head"><b>Heartpost</b><span>Printed exactly like this, in Tinos, on Holiday cotton paper</span></div>
+          <textarea id="xmas-letter" placeholder="Dear …,&#10;&#10;Merry Christmas! …"></textarea>
+          <div class="e" id="e-xmas-letter" hidden></div>
+        </div>
+        <div class="pages" id="xmas-pages"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Where should it go?</h3>
+      <label class="f" for="addr">Street address *</label>
+      <input type="text" id="addr" maxlength="120" autocomplete="address-line1" placeholder="12 Holly Lane"/>
+      <div class="e" id="e-addr" hidden></div>
+      <label class="f" for="addr2">Apartment, suite (optional)</label>
+      <input type="text" id="addr2" maxlength="60" autocomplete="address-line2"/>
+      <div class="row3">
+        <div><label class="f" for="city">City *</label><input type="text" id="city" maxlength="60" autocomplete="address-level2"/><div class="e" id="e-city" hidden></div></div>
+        <div><label class="f" for="state">State *</label>
+          <!-- The same codes the server accepts (US_STATES in heartpost server.js) -->
+          <select id="state" autocomplete="address-level1">
+            <option value="">Choose…</option>
+            <option value="">Choose…</option>
+            <option value="AL">Alabama</option>
+            <option value="AK">Alaska</option>
+            <option value="AZ">Arizona</option>
+            <option value="AR">Arkansas</option>
+            <option value="CA">California</option>
+            <option value="CO">Colorado</option>
+            <option value="CT">Connecticut</option>
+            <option value="DE">Delaware</option>
+            <option value="DC">District of Columbia</option>
+            <option value="FL">Florida</option>
+            <option value="GA">Georgia</option>
+            <option value="HI">Hawaii</option>
+            <option value="ID">Idaho</option>
+            <option value="IL">Illinois</option>
+            <option value="IN">Indiana</option>
+            <option value="IA">Iowa</option>
+            <option value="KS">Kansas</option>
+            <option value="KY">Kentucky</option>
+            <option value="LA">Louisiana</option>
+            <option value="ME">Maine</option>
+            <option value="MD">Maryland</option>
+            <option value="MA">Massachusetts</option>
+            <option value="MI">Michigan</option>
+            <option value="MN">Minnesota</option>
+            <option value="MS">Mississippi</option>
+            <option value="MO">Missouri</option>
+            <option value="MT">Montana</option>
+            <option value="NE">Nebraska</option>
+            <option value="NV">Nevada</option>
+            <option value="NH">New Hampshire</option>
+            <option value="NJ">New Jersey</option>
+            <option value="NM">New Mexico</option>
+            <option value="NY">New York</option>
+            <option value="NC">North Carolina</option>
+            <option value="ND">North Dakota</option>
+            <option value="OH">Ohio</option>
+            <option value="OK">Oklahoma</option>
+            <option value="OR">Oregon</option>
+            <option value="PA">Pennsylvania</option>
+            <option value="RI">Rhode Island</option>
+            <option value="SC">South Carolina</option>
+            <option value="SD">South Dakota</option>
+            <option value="TN">Tennessee</option>
+            <option value="TX">Texas</option>
+            <option value="UT">Utah</option>
+            <option value="VT">Vermont</option>
+            <option value="VA">Virginia</option>
+            <option value="WA">Washington</option>
+            <option value="WV">West Virginia</option>
+            <option value="WI">Wisconsin</option>
+            <option value="WY">Wyoming</option>
+            <option value="AS">American Samoa</option>
+            <option value="GU">Guam</option>
+            <option value="MP">Northern Mariana Islands</option>
+            <option value="PR">Puerto Rico</option>
+            <option value="VI">U.S. Virgin Islands</option>
+            <option value="AA">Armed Forces Americas (AA)</option>
+            <option value="AE">Armed Forces Europe (AE)</option>
+            <option value="AP">Armed Forces Pacific (AP)</option>
+          </select><div class="e" id="e-state" hidden></div></div>
+        <div><label class="f" for="zip">ZIP *</label><input type="text" id="zip" maxlength="10" inputmode="numeric" autocomplete="postal-code"/><div class="e" id="e-zip" hidden></div></div>
+      </div>
+      <p class="hint" style="margin-top:.6rem">The Christmas Collection is mailed within the US only.</p>
+      <label class="f" for="email">Your email * <span style="text-transform:none;letter-spacing:0">(for the receipt and updates)</span></label>
+      <input type="email" id="email" maxlength="120" autocomplete="email" placeholder="you@email.com"/>
+      <div class="e" id="e-email" hidden></div>
+    </div>
+
+    <div class="card">
+      <h3>Add-ons</h3>
+      <label class="addon"><input type="checkbox" id="rush"> <span><strong>Holiday rush +$5</strong> — your letter moves to the front of the queue</span></label>
+      <label class="addon"><input type="checkbox" id="tracking"> <span><strong>USPS tracking +$12</strong> — tracking number emailed when it's mailed</span></label>
+      <div class="late" id="late-row" hidden>
+        <label class="addon"><input type="checkbox" id="late-ok"> <span><strong>I understand it may arrive after Christmas.</strong></span></label>
+        <div class="e" id="e-late-ok" hidden></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Your order</h3>
+      <div id="sum-lines"></div>
+      <div class="stotal"><span>Total</span><span id="sum-total">—</span></div>
+      <div id="card-element"></div>
+      <div id="pay-err" aria-live="polite"></div>
+      <button type="button" class="btn pay" id="pay">Seal &amp; send ✉</button>
+      <p class="hint" style="margin-top:.6rem;text-align:center">Printed on cotton paper, sealed with real wax, mailed by hand.</p>
+    </div>
+  </section>
+
+  <section class="done" id="done" hidden>
+    <div class="seal">✉</div>
+    <h2>It's in our hands.</h2>
+    <p>We'll print it on Holiday cotton paper, seal it with real wax and mail it by hand.<br>A confirmation is on its way to your email.</p>
+    <p style="font-family:'DM Mono',monospace;font-size:.8rem;margin-top:1rem" id="done-id"></p>
+    <p style="margin-top:1.5rem"><a href="/christmas">Send another Christmas letter</a></p>
+  </section>
+</main>
+
+<footer>Heartpost · PO Box 44, Sayreville, NJ 08871 · <a href="mailto:hello@heartpost.org">hello@heartpost.org</a></footer>
+</div>
+<noscript><p style="padding:2rem;text-align:center">The Christmas Collection needs JavaScript. <a href="/">Back to Heartpost</a></p></noscript>
+</body>
+</html>
