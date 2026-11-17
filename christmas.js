@@ -30,6 +30,16 @@
     return today <= XMAS.lastDay ? 'late' : 'closed';
   }
 
+  // Homepage countdown, in New York days to the order-by date:
+  // "28 days left to order for Christmas", "1 day left…", "Last day to order
+  // for Christmas", then "Last orders may arrive after Christmas"
+  function countdownText(ms = Date.now()) {
+    const days = Math.round((Date.parse(`${XMAS.orderBy}T12:00:00Z`) - Date.parse(`${nyDate(ms)}T12:00:00Z`)) / 86400000);
+    if (days < 0) return 'Last orders may arrive after Christmas';
+    if (days === 0) return 'Last day to order for Christmas';
+    return `${days} day${days === 1 ? '' : 's'} left to order for Christmas`;
+  }
+
   // "a", "a and b", "a, b and c"
   function joinList(items) {
     return items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0] || '';
@@ -65,7 +75,7 @@
     return Math.round(total * 100) / 100;
   }
 
-  const api = { XMAS, nyDate, seasonPhase, santaLetter, displayTotal, joinList };
+  const api = { XMAS, nyDate, seasonPhase, countdownText, santaLetter, displayTotal, joinList };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
 
@@ -321,10 +331,15 @@
     mountCard();
   }
 
-  // Every page: [data-xmas] links and banners (homepage nav and callout) show
-  // only during the season. The Christmas page itself has id="xmas".
+  // Every page: [data-xmas] elements (the homepage strip, nav pill and
+  // feature) show only during the season, when the page also gets the
+  // xmas-season class (the homepage moves its nav below the strip);
+  // [data-xmas-countdown] gets the countdown. The Christmas page itself has id="xmas".
   root.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-xmas]').forEach(el => { el.hidden = S.phase === 'closed'; });
+    const inSeason = S.phase !== 'closed';
+    if (inSeason && document.documentElement?.classList) document.documentElement.classList.add('xmas-season');
+    document.querySelectorAll('[data-xmas]').forEach(el => { el.hidden = !inSeason; });
+    document.querySelectorAll('[data-xmas-countdown]').forEach(el => { el.textContent = countdownText(); });
     if ($('xmas')) init();
   });
 })(typeof window !== 'undefined' ? window : globalThis);

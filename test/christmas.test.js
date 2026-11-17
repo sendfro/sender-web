@@ -31,6 +31,8 @@ function loadPage(nowMs, { ids = ['xmas'], dataXmas = 0, confirmAnswer = true } 
   };
   ids.forEach(el);
   const xmasLinks = Array.from({ length: dataXmas }, (_, i) => el(`link-${i}`));
+  const countdowns = dataXmas ? [el('countdown')] : [];
+  const htmlClasses = new Set();
   const products  = ids.includes('xmas') ? ['santa', 'santa_bundle', 'christmas'].map(p => Object.assign(el(`product-${p}`), { dataset: { product: p } })) : [];
   const fetched = [];
   const redirects = [];
@@ -44,7 +46,9 @@ function loadPage(nowMs, { ids = ['xmas'], dataXmas = 0, confirmAnswer = true } 
     Date: FixedDate, Intl, Math, JSON, Array, Number, String, Object, Promise, setTimeout, clearTimeout,
     document: {
       getElementById: id => (ids.includes(id) || els.has(id) || id !== 'xmas' ? el(id) : null),
-      querySelectorAll: sel => (sel === '[data-xmas]' ? xmasLinks : sel === '.product' ? products : []),
+      querySelectorAll: sel => (sel === '[data-xmas]' ? xmasLinks : sel === '[data-xmas-countdown]' ? countdowns
+        : sel === '.product' ? products : []),
+      documentElement: { classList: { add: c => htmlClasses.add(c) } },
     },
     location: { replace: url => redirects.push(url) },
     confirm: () => confirmAnswer,
@@ -62,7 +66,7 @@ function loadPage(nowMs, { ids = ['xmas'], dataXmas = 0, confirmAnswer = true } 
   vm.createContext(sandbox);
   vm.runInContext(read('christmas.js'), sandbox);
   (windowListeners.DOMContentLoaded || []).forEach(fn => fn());
-  return { el, els, xmasLinks, redirects, fetched };
+  return { el, els, xmasLinks, redirects, fetched, htmlClasses };
 }
 
 test('season: open through Dec 15, then the checkbox, closed after Dec 31 (New York time)', () => {
@@ -89,20 +93,69 @@ test('the page is hidden until the season is checked, and after Dec 31 sends vis
   assert.deepEqual(page.redirects, ['/']);
 });
 
-test('homepage: the Christmas nav link and callout show only in season', () => {
+// The homepage's season-gated blocks: top strip, nav pill, feature card
+function homeXmasBlocks(home) {
+  const strip   = home.match(/<a href="\/christmas" class="xmas-strip"[^>]*>[\s\S]*?<\/a>/)[0];
+  const pill    = home.match(/<a href="\/christmas" class="nav-xmas"[^>]*>[\s\S]*?<\/a>/)[0];
+  const feature = home.match(/<section class="xmas-feature"[\s\S]*?<\/section>/)[0];
+  return { strip, pill, feature };
+}
+
+test('homepage: strip, nav pill and feature card start hidden and are season-gated', () => {
   const home = read('index.html');
-  const links = [...home.matchAll(/<a href="\/christmas"[^>]*>/g)].map(m => m[0]);
-  assert.equal(links.length, 2); // nav link + callout
-  for (const a of links) assert.match(a, /data-xmas hidden/);
-  assert.match(home, />Christmas<\/a>/);
+  const { strip, pill, feature } = homeXmasBlocks(home);
+  for (const block of [strip, pill, feature]) assert.match(block.slice(0, block.indexOf('>') + 1), /data-xmas hidden/);
+  assert.equal((home.match(/data-xmas hidden/g) || []).length, 3);
   assert.match(home, /<script src="\/christmas\.js" defer><\/script>/);
 
-  let home1 = loadPage(NY('2026-12-20', '12:00'), { ids: [], dataXmas: 2 });
-  assert.deepEqual(home1.xmasLinks.map(l => l.hidden), [false, false]);
-  assert.deepEqual(home1.redirects, []); // the homepage is never redirected
-  home1 = loadPage(NY('2027-01-02', '12:00'), { ids: [], dataXmas: 2 });
-  assert.deepEqual(home1.xmasLinks.map(l => l.hidden), [true, true]);
-  assert.deepEqual(home1.redirects, []);
+  // In season (up to Dec 31 in New York): shown, nav moved under the strip, countdown filled
+  let page = loadPage(NY('2026-12-31', '23:59'), { ids: [], dataXmas: 3 });
+  assert.deepEqual(page.xmasLinks.map(l => l.hidden), [false, false, false]);
+  assert.ok(page.htmlClasses.has('xmas-season'));
+  assert.equal(page.el('countdown').textContent, 'Last orders may arrive after Christmas');
+  assert.deepEqual(page.redirects, []); // the homepage is never redirected
+
+  // From Jan 1: all hidden, no season class
+  page = loadPage(NY('2027-01-01', '00:01'), { ids: [], dataXmas: 3 });
+  assert.deepEqual(page.xmasLinks.map(l => l.hidden), [true, true, true]);
+  assert.equal(page.htmlClasses.size, 0);
+  assert.deepEqual(page.redirects, []);
+});
+
+test('homepage feature: wording, prices and links', () => {
+  const { strip, pill, feature } = homeXmasBlocks(read('index.html'));
+  assert.ok(strip.includes('🎄 The Christmas Collection is here<span class="wide">: Letters from Santa from $19.99</span> · Order by Dec 15 for Christmas delivery →'));
+  assert.match(pill, /★<\/span>Christmas<\/a>/);
+  for (const text of ["A letter from Santa they'll keep forever.", 'Printed on cotton paper, sealed in red wax, mailed from our desk to their mailbox.',
+    'Letter from Santa</b><span class="price">$19.99<span class="go" aria-hidden="true">→</span>',
+    'Santa Sibling Bundle</b><span class="price"><small>from</small>$36.99<span class="go" aria-hidden="true">→</span>',
+    'Christmas Letter</b><span class="price">$12.99<span class="go" aria-hidden="true">→</span>', 'Shop Christmas →']) {
+    assert.ok(feature.includes(text), text);
+  }
+  assert.match(feature, /<p class="xmas-countdown" data-xmas-countdown><\/p>/);
+  for (const block of [strip, pill, feature]) {
+    assert.doesNotMatch(block, /hand-?written|handwriting/i);
+    for (const [, href] of block.matchAll(/href="([^"]+)"/g)) assert.equal(href, '/christmas');
+  }
+  // The photo stays hidden unless /images/santa-letter.jpg loads
+  assert.match(feature, /<img class="xmas-photo" src="\/images\/santa-letter\.jpg" alt="[^"]+" hidden onload="this\.hidden = false">/);
+  // Only in season does the hero below the card lose its full-screen height
+  assert.match(read('index.html'), /\.xmas-season \.hero \{\s*min-height: auto;/);
+  // Snow stops for people who ask for less motion
+  assert.match(read('index.html'), /@media \(prefers-reduced-motion: reduce\) \{\s*\.xmas-card::before \{ animation: none; \}/);
+});
+
+test('countdown to Dec 15 (New York time)', () => {
+  assert.equal(xmas.countdownText(NY('2026-11-17', '12:00')), '28 days left to order for Christmas');
+  assert.equal(xmas.countdownText(NY('2026-12-13', '00:01')), '2 days left to order for Christmas');
+  assert.equal(xmas.countdownText(NY('2026-12-14', '23:59')), '1 day left to order for Christmas');
+  assert.equal(xmas.countdownText(NY('2026-12-15', '09:00')), 'Last day to order for Christmas');
+  assert.equal(xmas.countdownText(NY('2026-12-16', '00:01')), 'Last orders may arrive after Christmas');
+  // 10pm Dec 14 in New York is already Dec 15 in UTC: still 1 day
+  assert.equal(xmas.countdownText(Date.parse('2026-12-15T03:00:00Z')), '1 day left to order for Christmas');
+  // The page fills it in
+  const page = loadPage(NY('2026-11-17', '12:00'), { ids: [], dataXmas: 3 });
+  assert.equal(page.el('countdown').textContent, '28 days left to order for Christmas');
 });
 
 test('after Dec 15 the "may arrive after Christmas" checkbox is shown; before, it is not', () => {

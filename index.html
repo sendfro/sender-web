@@ -81,48 +81,361 @@
       background: var(--red);
     }
 
-    /* Christmas Collection: shown in season only (christmas.js, [data-xmas]) */
+    /* ── Christmas Collection ──
+       Shown in season only: christmas.js unhides [data-xmas] and adds
+       .xmas-season to <html> (same dates as /christmas). Colors pass WCAG AA:
+       cream on green 11:1, cream on red 7.6:1, gold on green 4.5:1. */
+    :root {
+      --xmas-red: #9b1c23;
+      --xmas-green: #1f3d34;
+      --xmas-gold: #bd9b68;
+      --xmas-cream: #faf7f2;
+      --xmas-strip-h: 40px;
+    }
+
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 12px;
+    }
+
+    /* The pill and "Send a Letter →" share one fixed height, whatever
+       font the ★ comes from, and never wrap */
+    .nav-links .nav-xmas,
+    .nav-links .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      height: 38px;
+      padding-top: 0;
+      padding-bottom: 0;
+      white-space: nowrap;
     }
 
     .nav-xmas {
-      color: #1f4d3a;
+      background: var(--xmas-red);
+      color: var(--xmas-cream);
       text-decoration: none;
+      padding: 0 20px;
       font-size: 13px;
       letter-spacing: 0.06em;
       font-weight: 500;
+      border-radius: 999px;
+      transition: background 0.2s;
     }
 
     .nav-xmas:hover {
-      color: var(--red);
+      background: #7d161c;
+    }
+
+    .nav-xmas .star {
+      color: var(--xmas-gold);
+      margin-right: 4px;
     }
 
     .xmas-strip {
-      display: block;
-      background: #1f4d3a;
-      color: var(--cream);
-      text-align: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 101;
+      height: var(--xmas-strip-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      background: var(--xmas-green);
+      border-bottom: 2px solid var(--xmas-gold);
+      color: var(--xmas-cream);
       text-decoration: none;
-      padding: 22px 24px;
-      border-top: 3px solid var(--gold);
-      border-bottom: 3px solid var(--gold);
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      text-align: center;
+      line-height: 1.35;
     }
 
-    .xmas-strip strong {
+    .xmas-strip > span {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .xmas-strip:hover {
+      text-decoration: underline;
+      text-decoration-color: var(--xmas-gold);
+    }
+
+    .xmas-season nav {
+      top: var(--xmas-strip-h);
+    }
+
+    .xmas-feature {
+      padding: calc(var(--xmas-strip-h) + 100px) 48px 8px;
+    }
+
+    .xmas-card {
+      position: relative;
+      overflow: hidden;
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 40px;
+      align-items: center;
+      padding: 48px 52px;
+      background: var(--xmas-green);
+      color: var(--xmas-cream);
+      border: 2px solid var(--xmas-gold);
+      box-shadow: 0 0 0 6px var(--xmas-green), 0 0 0 8px var(--xmas-red), 0 18px 40px rgba(31,61,52,0.25);
+      margin-top: 8px;
+    }
+
+    /* Snow: three layers of soft dots drifting down; still for reduced motion */
+    .xmas-card::before {
+      content: '';
+      position: absolute;
+      inset: -200px 0 0 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle, rgba(250,247,242,0.55) 1.5px, transparent 2px),
+        radial-gradient(circle, rgba(250,247,242,0.35) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(189,155,104,0.45) 1px, transparent 1.5px);
+      background-size: 120px 120px, 70px 70px, 160px 160px;
+      background-position: 0 0, 35px 20px, 80px 60px;
+      animation: xmas-snow 30s linear infinite;
+      opacity: 0.7;
+    }
+
+    @keyframes xmas-snow {
+      to { background-position: 0 240px, 35px 160px, 80px 380px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .xmas-card::before { animation: none; }
+    }
+
+    .xmas-card > * {
+      position: relative;
+    }
+
+    .xmas-eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--xmas-gold);
+      margin-bottom: 14px;
+    }
+
+    .xmas-card h2 {
       font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
       font-weight: 400;
-      font-size: 24px;
-      display: block;
+      font-style: italic;
+      font-size: clamp(34px, 4.2vw, 52px);
+      line-height: 1.08;
+      margin: 0 0 14px;
     }
 
-    .xmas-strip span {
+    .xmas-card p.xmas-sub {
+      font-size: 17px;
+      line-height: 1.6;
+      margin: 0 0 26px;
+      max-width: 34em;
+    }
+
+    .xmas-shop {
+      display: inline-block;
+      background: var(--xmas-red);
+      color: var(--xmas-cream);
+      text-decoration: none;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+      padding: 16px 34px;
+      border: 1px solid var(--xmas-gold);
+      transition: background 0.2s;
+    }
+
+    .xmas-shop:hover {
+      background: #7d161c;
+    }
+
+    .xmas-countdown {
+      margin: 14px 0 0;
       font-size: 14px;
       letter-spacing: 0.04em;
-      opacity: 0.9;
+      color: var(--xmas-gold);
+    }
+
+    .xmas-tiles {
+      display: grid;
+      gap: 12px;
+    }
+
+    .xmas-tile {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      padding: 16px 20px;
+      background: #28493f;
+      border: 1px solid rgba(189,155,104,0.6);
+      border-left: 4px solid var(--xmas-red);
+      color: var(--xmas-cream);
+      text-decoration: none;
+    }
+
+    .xmas-tile:hover {
+      border-color: var(--xmas-gold);
+    }
+
+    .xmas-tile b {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    /* Prices: bold cream, with an arrow so the tiles read as links */
+    .xmas-tile .price {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--xmas-cream);
+      white-space: nowrap;
+    }
+
+    .xmas-tile .price small {
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 3px;
+    }
+
+    .xmas-tile .go {
+      margin-left: 10px;
+      font-weight: 500;
+      transition: margin 0.2s;
+    }
+
+    .xmas-tile:hover .go {
+      margin-left: 14px;
+    }
+
+    /* Optional photo: /images/santa-letter.jpg shows (onload unhides it) as a
+       third column; without the file the card stays two columns */
+    .xmas-photo {
+      width: 100%;
+      max-width: 280px;
+      justify-self: end;
+      border-radius: 12px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+    }
+
+    .xmas-card:has(.xmas-photo:not([hidden])) {
+      grid-template-columns: 1.15fr 1fr 0.8fr;
+      gap: 32px;
+    }
+
+    /* In season the card clears the fixed nav, so the hero below it sizes to
+       its content instead of filling the screen */
+    .xmas-season .hero {
+      min-height: auto;
+      padding-top: 72px;
+    }
+
+    @media (max-width: 960px) {
+      :root {
+        --xmas-strip-h: 52px;
+      }
+
+      .xmas-strip {
+        font-size: 12.5px;
+      }
+
+      .xmas-strip .wide {
+        display: none;
+      }
+
+      .xmas-feature {
+        padding: calc(var(--xmas-strip-h) + 88px) 16px 8px;
+      }
+
+      .xmas-card {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        padding: 32px 22px;
+      }
+
+      .xmas-shop {
+        display: block;
+        text-align: center;
+      }
+
+      .xmas-countdown {
+        text-align: center;
+      }
+
+      .xmas-card:has(.xmas-photo:not([hidden])) {
+        grid-template-columns: 1fr;
+      }
+
+      /* Phones: text, then the photo, then the tiles */
+      .xmas-photo {
+        order: 1;
+        max-width: 100%;
+        justify-self: stretch;
+      }
+
+      .xmas-tiles {
+        order: 2;
+      }
+
+      .xmas-tile .price {
+        font-size: 18px;
+      }
+
+      .xmas-season .hero {
+        padding-top: 56px;
+      }
+
+      .nav-xmas,
+      .nav-links .nav-cta {
+        padding: 0 14px;
+      }
+    }
+
+    /* Phones: name, then the price under it, so neither wraps */
+    @media (max-width: 600px) {
+      .xmas-tile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 14px 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .xmas-season nav {
+        padding: 12px 16px;
+      }
+
+      .xmas-season .nav-logo {
+        font-size: 19px;
+        letter-spacing: 0.04em;
+      }
+
+      .nav-links {
+        gap: 8px;
+      }
+
+      .nav-links .nav-xmas,
+      .nav-links .nav-cta {
+        height: 34px;
+        padding: 0 11px;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+      }
+
+      .xmas-feature {
+        padding-top: calc(var(--xmas-strip-h) + 74px);
+      }
     }
 
     [hidden] {
@@ -888,13 +1201,35 @@
 
 <body>
 
+  <a href="/christmas" class="xmas-strip" data-xmas hidden>
+    <span>🎄 The Christmas Collection is here<span class="wide">: Letters from Santa from $19.99</span> · Order by Dec 15 for Christmas delivery →</span>
+  </a>
+
   <nav>
     <a href="/" class="nav-logo">Heart<span>post</span></a>
     <div class="nav-links">
-      <a href="/christmas" class="nav-xmas" data-xmas hidden>Christmas</a>
+      <a href="/christmas" class="nav-xmas" data-xmas hidden><span class="star" aria-hidden="true">★</span>Christmas</a>
       <a href="/heartpost-checkout.html" class="nav-cta">Send a Letter →</a>
     </div>
   </nav>
+
+  <section class="xmas-feature" data-xmas hidden aria-labelledby="xmas-title">
+    <div class="xmas-card">
+      <div>
+        <div class="xmas-eyebrow">The Christmas Collection</div>
+        <h2 id="xmas-title">A letter from Santa they'll keep forever.</h2>
+        <p class="xmas-sub">Printed on cotton paper, sealed in red wax, mailed from our desk to their mailbox.</p>
+        <a href="/christmas" class="xmas-shop">Shop Christmas →</a>
+        <p class="xmas-countdown" data-xmas-countdown></p>
+      </div>
+      <div class="xmas-tiles">
+        <a href="/christmas" class="xmas-tile"><b>Letter from Santa</b><span class="price">$19.99<span class="go" aria-hidden="true">→</span></span></a>
+        <a href="/christmas" class="xmas-tile"><b>Santa Sibling Bundle</b><span class="price"><small>from</small>$36.99<span class="go" aria-hidden="true">→</span></span></a>
+        <a href="/christmas" class="xmas-tile"><b>Christmas Letter</b><span class="price">$12.99<span class="go" aria-hidden="true">→</span></span></a>
+      </div>
+      <img class="xmas-photo" src="/images/santa-letter.jpg" alt="A Letter from Santa on Holiday cotton paper, sealed in red wax" hidden onload="this.hidden = false">
+    </div>
+  </section>
 
   <section class="hero">
     <div class="hero-content">
@@ -943,11 +1278,6 @@
     <div>✍️ Your handwriting or typed</div>
     <div>🔒 Completely private</div>
   </div>
-
-  <a href="/christmas" class="xmas-strip" data-xmas hidden>
-    <strong>The Christmas Collection: Letters from Santa from $19.99 →</strong>
-    <span>Printed on cotton paper, sealed with real wax, mailed by hand · Order by December 15 for Christmas delivery (US)</span>
-  </a>
 
   <section class="intent-section" id="intent">
     <div class="section-label">Start here</div>
